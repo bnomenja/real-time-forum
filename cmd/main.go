@@ -40,7 +40,6 @@ func main() {
 	http.HandleFunc("/register", app.HandleRegister)
 	http.HandleFunc("/statics/", handlers.ServeStatic)
 	http.HandleFunc("/ws", websocket.WebsocketHandler)
-
 	fmt.Println("Server started. Go to http://localhost:8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		fmt.Println("error while starting the server")

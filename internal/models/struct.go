@@ -1,12 +1,13 @@
 package models
 
 type User struct {
-	FirstName string `json:"FirstName"`
-	LastName  string `json:"LastName"`
-	Nickname  string `json:"Nickname"`
-	Age       int    `json:"Age"`
-	Gender    string `json:"Gender"`
-	Password  string `json:"Password"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Nickname  string `json:"nickName"`
+	Age       int    `json:"age"`
+	Gender    string `json:"gender"`
+	Password  string `json:"password"`
+	Email     string `json:"email"`
 }
 
 type Resp struct {

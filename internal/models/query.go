@@ -84,3 +84,9 @@ CREATE TABLE IF NOT EXISTS private_message (
 );
 
 `
+
+// for register
+const (
+	Insert_user               = `INSERT INTO user (first_name, last_name, nickname, email, age, gender, password) VALUES (?, ?, ?, ?, ?, ?, ?)`
+	Select_userID_by_nickname = `SELECT id FROM user WHERE nickname = ?`
+)

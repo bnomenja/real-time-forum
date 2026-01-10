@@ -1,26 +1,26 @@
 export const generateRegisterPage = () => {
   document.body.innerHTML = `
     <div id="register-container">
-      <h2>Register</h2>
-
+      <div class="input-error"></div>
+      
       <div class="form-row">
         <label for="first-name">First name:</label>
-        <input type="text" id="firstName" name="first-name">
+        <input type="text" id="firstName" name="first-name" required maxlength="15">
       </div>
       
       <div class="form-row">
         <label for="last-name">Last name:</label>
-        <input type="text" id="lastName" name="last-name">
+        <input type="text" id="lastName" name="last-name" required maxlength="30">
       </div>
       
       <div class="form-row">
         <label for="nickname">Nickname:</label>
-        <input type="text" id="nickName" name="nickname">
+        <input type="text" id="nickName" name="nickname" required maxlength="20">
       </div>
       
       <div class="form-row">
         <label for="age">Age:</label>
-        <input type="number" id="age" name="age">
+        <input type="number" id="age" name="age" required>
       </div>
       
       <div id="gender-container">
@@ -37,12 +37,12 @@ export const generateRegisterPage = () => {
       
       <div class="form-row">
         <label for="email">E-mail:</label>
-        <input type="email" id="email" name="email">
+        <input type="email" id="email" name="email" required maxlength="50">
       </div>
       
       <div class="form-row">
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password">
+        <input type="password" id="password" name="password" required maxlength="20" minlength="6">
       </div>
       
       <button id="submit-btn" type="submit">Sign up</button>
