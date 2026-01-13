@@ -1,6 +1,15 @@
-import { generateRegisterPage } from "./pages/registerPage.js"
+const getData = (userData) => {
+    const gender = document.querySelector('input[name="gender"]:checked');
+    userData.gender = gender ? gender.value : ""
 
-generateRegisterPage()
+    const inputs = document.querySelectorAll(".form-row")
+    inputs.forEach(el => {
+        const data = el.children[1]
+        userData[data.id] = data ? data.value : ""
+    })
+
+    userData.age = Number(userData.age ??= 0)
+}
 
 const verifyData = (userData) => {
     Object.entries(userData).forEach(([key, val]) => {
@@ -58,27 +67,14 @@ const verifyData = (userData) => {
     })
 }
 
-const getData = (userData) => {
-    const gender = document.querySelector('input[name="gender"]:checked');
-    userData.gender = gender ? gender.value : ""
-
-    const inputs = document.querySelectorAll(".form-row")
-    inputs.forEach(el => {
-        const data = el.children[1]
-        userData[data.id] = data ? data.value : ""
-    })
-
-    userData.age = Number(userData.age ??= 0)
-}
-
-const handleregisterFront = async () => {
+export const handleregisterFront = async () => {
     const userData = {}
 
     getData(userData)
     verifyData(userData)
 
     if (userData.error) {
-        const inputError = document.getElementsByClassName("input-error")[0]
+        const inputError = document.querySelector(".input-error")
         inputError.textContent = userData.error
         inputError.style.display = "block"
         return
@@ -93,21 +89,20 @@ const handleregisterFront = async () => {
             body: JSON.stringify(userData)
         })
 
-        if (!resp.ok) throw new Error("failed to send data")
-
         const res = await resp.json()
+        console.log(res)
 
-        document.body.innerHTML = `
-            <div id="message-container">
-            <h1>${res.code}</h1>
-            <p>${res.message}</p>
-            </div>
-        `
+        // document.body.innerHTML = `
+        //     <div id="message-container">
+        //     <h1>${res.code}</h1>
+        //     <p>${res.message}</p>
+        //     </div>
+        // `
+
+        window.location = "/"
 
     } catch (err) {
         console.error(err)
     }
 
 }
-
-document.getElementById("submit-btn").addEventListener("click", handleregisterFront)

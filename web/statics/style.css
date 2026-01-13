@@ -14,7 +14,13 @@ body {
   padding: clamp(1rem, 3vw, 2rem);
 }
 
-#register-container {
+nav {
+  display: flex;
+  justify-content: left;
+  flex-direction: column;
+}
+
+.container {
   background: white;
   padding: clamp(1.5rem, 5vw, 2.5rem);
   border-radius: clamp(0.5rem, 1vw, 0.75rem);
@@ -52,7 +58,6 @@ body {
   word-break: break-word;
   overflow-wrap: break-word;
 }
-
 
 label {
   display: inline-block;

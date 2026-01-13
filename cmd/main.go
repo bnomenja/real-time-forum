@@ -28,7 +28,7 @@ func main() {
 
 	_, err = db.Exec(models.Initialize)
 	if err != nil {
-		fmt.Println("error cearting tables: ", err)
+		fmt.Println("error creating tables: ", err)
 		return
 	}
 
@@ -38,8 +38,10 @@ func main() {
 
 	http.HandleFunc("/", app.HomeHanlder)
 	http.HandleFunc("/register", app.HandleRegister)
+	http.HandleFunc("/login", app.HandleLogin)
 	http.HandleFunc("/statics/", handlers.ServeStatic)
 	http.HandleFunc("/ws", websocket.WebsocketHandler)
+
 	fmt.Println("Server started. Go to http://localhost:8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		fmt.Println("error while starting the server")

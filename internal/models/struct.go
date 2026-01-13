@@ -15,3 +15,9 @@ type Resp struct {
 	Code    int    `json:"code"`
 	Error   error  `json:"error"`
 }
+
+type Credentials struct {
+	Nickname string `json:"nickName"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
