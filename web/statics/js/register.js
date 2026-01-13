@@ -80,8 +80,6 @@ export const handleregisterFront = async () => {
         return
     }
 
-    console.log(userData)
-
     try {
         const resp = await fetch("/register", {
             method: "POST",
@@ -92,15 +90,12 @@ export const handleregisterFront = async () => {
         const res = await resp.json()
         console.log(res)
 
-        // document.body.innerHTML = `
-        //     <div id="message-container">
-        //     <h1>${res.code}</h1>
-        //     <p>${res.message}</p>
-        //     </div>
-        // `
-
-        window.location = "/"
-
+        document.body.innerHTML = `
+            <div id="message-container">
+            <h1>${res.code}</h1>
+            <p>${res.error}</p>
+            </div>
+        `
     } catch (err) {
         console.error(err)
     }

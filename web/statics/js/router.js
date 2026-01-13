@@ -17,7 +17,7 @@ const scripts = {
 
 let oldScript = document.getElementById("script")
 
-const handleRouting = async () => {
+export const handleRouting = async () => {
     const path = window.location.pathname
     const route = routes[path] || routes[404]
     const scriptPath = scripts[path] || scripts[404]

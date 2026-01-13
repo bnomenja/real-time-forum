@@ -1,37 +1,22 @@
 package handlers
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
-	"time"
 
+	"real-time-forum/internal/helpers"
 	"real-time-forum/internal/models"
 )
 
 func (a *App) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		// render error 405
+		helpers.Respond(w, &models.Resp{
+			Code:  405,
+			Error: errors.New("method not allowed"),
+		})
+		
 		return
 	}
 
-	cookie, err := r.Cookie("session")
-	if err != nil {
-		fmt.Println("no cookie")
-		return
-	}
-
-	session_ID := cookie.Value
-
-	_, err = a.DB.Exec(models.Delete_session_by_id, session_ID)
-	if err != nil {
-		fmt.Println("failed to delete session: ", err)
-		return
-	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:    "session",
-		Value:   "",
-		Expires: time.Time{},
-		MaxAge:  -1,
-	})
+	helpers.RemoveCookie(w, r, a.DB, "")
 }
