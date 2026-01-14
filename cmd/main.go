@@ -7,7 +7,6 @@ import (
 
 	"real-time-forum/internal/handlers"
 	"real-time-forum/internal/models"
-	"real-time-forum/internal/websocket"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -36,11 +35,13 @@ func main() {
 		DB: db,
 	}
 
+	go handlers.Broadcast(db)
+
 	http.HandleFunc("/", app.HomeHanlder)
 	http.HandleFunc("/register", app.HandleRegister)
 	http.HandleFunc("/login", app.HandleLogin)
 	http.HandleFunc("/statics/", handlers.ServeStatic)
-	http.HandleFunc("/ws", websocket.WebsocketHandler)
+	http.HandleFunc("/ws/chat", app.WebsocketHandler)
 
 	fmt.Println("Server started. Go to http://localhost:8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {

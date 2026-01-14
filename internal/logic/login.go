@@ -64,7 +64,7 @@ func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		Error:   nil,
 	}
 
-	err := helpers.GetData(r, nil, credentials)
+	err := helpers.GetData(r, credentials)
 	if err != nil {
 		resp.Code = 500
 		resp.Error = err

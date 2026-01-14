@@ -21,7 +21,7 @@ func Register(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		Message: "you're registered",
 	}
 
-	err := helpers.GetData(r, user, nil)
+	err := helpers.GetData(r, user)
 	if err != nil {
 		helpers.Respond(w, &models.Resp{Code: 500, Error: err})
 		return

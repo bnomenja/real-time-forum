@@ -1,5 +1,11 @@
 package models
 
+import (
+	"time"
+
+	"github.com/gorilla/websocket"
+)
+
 type User struct {
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
@@ -20,4 +26,16 @@ type Credentials struct {
 	Nickname string `json:"nickName"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type Client struct {
+	NickName string
+	Ws       *websocket.Conn
+}
+
+type Message struct {
+	Sender   string    `json:"sender"`
+	Receiver string    `json:"receiver"`
+	Content  string    `json:"content"`
+	Time     time.Time `json:"time"`
 }

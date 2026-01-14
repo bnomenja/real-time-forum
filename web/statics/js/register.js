@@ -88,14 +88,9 @@ export const handleregisterFront = async () => {
         })
 
         const res = await resp.json()
-        console.log(res)
+        console.log(res)    
 
-        document.body.innerHTML = `
-            <div id="message-container">
-            <h1>${res.code}</h1>
-            <p>${res.error}</p>
-            </div>
-        `
+        window.location.pathname = "/ws/chat"
     } catch (err) {
         console.error(err)
     }
