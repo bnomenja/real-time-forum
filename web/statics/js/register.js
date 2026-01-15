@@ -1,3 +1,6 @@
+import { chatState } from './chat.js';
+import { HandleRouting } from './router.js';
+
 const getData = (userData) => {
     const gender = document.querySelector('input[name="gender"]:checked');
     userData.gender = gender ? gender.value : ""
@@ -88,9 +91,15 @@ export const handleregisterFront = async () => {
         })
 
         const res = await resp.json()
-        console.log(res)    
+        console.log(res)
 
-        window.location.pathname = "/ws/chat"
+        chatState.socket = new WebSocket("ws://localhost:8080/ws/chat")
+        chatState.nickName = userData.nickName
+
+        window.history.pushState({}, "", "/")
+        HandleRouting()
+
+
     } catch (err) {
         console.error(err)
     }

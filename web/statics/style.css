@@ -1,272 +1,246 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
+html,
 body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: clamp(14px, 1vw, 18px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(3px, 1vw, 5px);
 }
 
-/* NAV */
-
-.nav-bar,
-.global-container {
-    width: min(90%, 1400px);
-    border: 2px solid black;
+#main-container {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 
-.nav-bar {
-    height: clamp(50px, 8vh, 80px);
-    margin: 0.5vh;
-    padding: 0 1rem;
+.form-container {
+  width: clamp(280px, 35%, 500px);
+  aspect-ratio: 3/4;
+  border: 2px solid black;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  padding: clamp(15px, 3vw, 20px);
+}
 
-    display: flex;
-    align-items: center;
+.register {
+  width: clamp(280px, 35%, 500px);
+  aspect-ratio: 3/4;
+}
+
+.login {
+  width: clamp(280px, 33%, 450px);
+  aspect-ratio: 3/3.5;
+}
+
+#gender-container,
+.form-row {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(5px, 1.5vw, 10px);
+}
+
+#gender-container label,
+.form-row label {
+  flex: 1 1 clamp(80px, 30%, 130px);
+  min-width: fit-content;
+  font-size: clamp(0.9rem, 2.2vw, 1.05rem);
+}
+
+#gender-container .gender-input,
+.form-row input {
+  flex: 2 1 clamp(150px, 60%, 310px);
+  font-size: clamp(0.9rem, 2.2vw, 1.05rem);
+  padding: clamp(6px, 1.2vw, 10px);
+}
+
+.input-error {
+  width: 95%;
+  padding: clamp(8px, 2vw, 12px);
+  margin-bottom: clamp(10px, 2vw, 15px);
+  background-color: #fdecea;
+  color: #b71c1c;
+  border: 1px solid #f5c2c7;
+  border-radius: clamp(3px, 0.5vw, 4px);
+  text-align: center;
+  font-size: clamp(0.85rem, 2vw, 1rem);
+}
+
+#nav-bar {
+  display: flex;
+  justify-content: right;
+  border: 2px solid black;
+  min-height: clamp(60px, 9vh, 100px);
+  margin-bottom: clamp(5px, 1vh, 15px);
 }
 
 #profile {
-    margin-left: auto;
-    position: relative;
-    display: flex;
-    align-items: center;
+  position: absolute;
+  width: clamp(80px, 10vw, 100px);
+  aspect-ratio: 3/4;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  z-index: 10;
+  margin-top: clamp(10px, 2vh, 16px);
+  margin-right: clamp(16px, 3vw, 32px);
+  padding-top: clamp(8px, 1.5vh, 10px);
 }
-
-#profile img {
-    width: clamp(32px, 4vw, 48px);
-    height: clamp(32px, 4vw, 48px);
-    cursor: pointer;
-}
-
-/* PROFILE DROPDOWN */
 
 .button-container {
-    position: absolute;
-    top: 100%;
-    right: 0;
-
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-
-    padding: 0.75rem;
-    min-width: 140px;
-
-    background: white;
-    border: 2px solid black;
-    z-index: 10;
+  display: none;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  flex: 2;
+  border: 2px solid black;
 }
 
-.button-container button {
-    padding: 0.5rem;
-    font: inherit;
-    border: 1px solid black;
-    cursor: pointer;
+img {
+  width: clamp(40px, 6vw, 50px);
+  height: clamp(40px, 6vw, 50px);
 }
-
-/* MAIN LAYOUT */
 
 .global-container {
-    height: 85vh;
-    margin-top: 0.5vh;
-
-    display: flex;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: clamp(8px, 2vw, 16px);
+  padding: clamp(8px, 2vw, 16px);
+  border: 2px solid black;
 }
 
 .user-list-container {
-    width: min(280px, 25%);
-    padding: 0.75rem;
-    border-right: 2px solid black;
-    overflow-y: auto;
+  flex: 1;
+  min-width: clamp(120px, 20%, 200px);
+  border: 2px solid black;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding: clamp(3px, 1vw, 5px);
+  gap: clamp(5px, 1vh, 7px);
 }
 
-/* USER ITEM */
+.user-list-container h3 {
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
+}
 
 .user-data {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-
-    margin-top: 0.5rem;
-    padding: 0.4rem;
-
-    border: 1px solid black;
+  display: flex;
+  align-items: center;
+  gap: clamp(0.3rem, 1vw, 0.5rem);
+  padding: clamp(0.3rem, 0.8vw, 0.4rem);
+  border: 1px solid black;
+  font-size: clamp(0.85rem, 1.8vw, 1rem);
+  width: 100%;
 }
 
 .avatar {
-    position: relative;
-    width: 36px;
-    height: 36px;
-    flex-shrink: 0;
+  position: relative;
+  width: clamp(30px, 5vw, 36px);
+  height: clamp(30px, 5vw, 36px);
+  flex-shrink: 0;
 }
 
 .avatar img {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 .online-marker {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: greenyellow;
-    border: 1px solid black;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: clamp(6px, 1vw, 8px);
+  height: clamp(6px, 1vw, 8px);
+  border-radius: 50%;
+  background: greenyellow;
+  border: 1px solid black;
 }
-
-/* CHAT */
 
 .chat-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 0.75rem;
-    overflow: hidden;
+  flex: 3;
+  min-width: 0;
+  border: 2px solid black;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(2px, 0.5vw, 4px);
+  gap: clamp(3px, 1vh, 5px);
 }
 
-.messages {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    overflow-y: auto;
+#receiver {
+  flex: 1;
+  border: 2px solid black;
+  padding: clamp(5px, 1vw, 8px);
 }
 
-.chat-input {
-    position: sticky;
-    bottom: 0;
-
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.5rem;
-
-    padding: 0.5rem;
-    background: white;
-    border-top: 2px solid black;
+#messages {
+  flex: 10;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid black;
+  padding: clamp(2px, 0.5vw, 4px);
+  gap: clamp(5px, 1vh, 8px);
+  overflow-y: auto;
 }
-
-.chat-textarea {
-    resize: none;
-    padding: 0.5rem;
-    font: inherit;
-}
-
-/* MESSAGES */
 
 .message {
-    display: flex;
-    max-width: 75%;
+  display: flex;
+  max-width: 75%;
+  white-space: pre-wrap;
+  padding: clamp(0.4rem, 1.2vw, 0.6rem) clamp(0.6rem, 1.5vw, 0.9rem);
+  border-radius: clamp(0.8rem, 2vw, 1rem);
+  line-height: 1.4;
+  border: 1px solid black;
+  word-break: break-word;
+  font-size: clamp(0.85rem, 1.8vw, 1rem);
 }
 
-.message--other {
-    align-self: flex-start;
+.message-other {
+  align-self: flex-start;
+  background: #f1f1f1;
 }
 
-.message--me {
-    align-self: flex-end;
+.message-me {
+  align-self: flex-end;
+  background: #d1e7ff;
 }
 
-.bubble {
-    padding: 0.6rem 0.9rem;
-    border-radius: 1rem;
-    line-height: 1.4;
-    border: 1px solid black;
-    word-break: break-word;
+#chat-input {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: clamp(3px, 1vw, 5px);
+  border: 2px solid black;
+  gap: clamp(5px, 1vw, 8px);
 }
 
-.message--other .bubble {
-    background: #f1f1f1;
+#chat-textarea {
+  flex: 20;
+  min-width: 0;
+  font-size: clamp(0.85rem, 1.8vw, 1rem);
+  padding: clamp(4px, 1vw, 6px);
+  resize: none;
 }
 
-.message--me .bubble {
-    background: #d1e7ff;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-
-/* CONTAINER */
-
-#container {
-    width: min(90%, 420px);
-    padding: 1.5rem;
-
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-
-    border: 2px solid black;
-    background: white;
-}
-
-/* ERRORS */
-
-.input-error {
-    min-height: 1.2em;
-    font-size: 0.9em;
-}
-
-/* FORM ROWS */
-
-.form-row {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.form-row label {
-    font-size: 0.9em;
-}
-
-/* INPUTS */
-
-input[type="text"],
-input[type="password"],
-input[type="email"],
-input[type="number"] {
-    padding: 0.5rem;
-    font: inherit;
-
-    border: 1px solid black;
-}
-
-/* GENDER */
-
-#gender-container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-#gender-container label {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-}
-
-/* BUTTON */
-
-button {
-    margin-top: 0.5rem;
-    padding: 0.6rem;
-
-    font: inherit;
-    cursor: pointer;
-
-    border: 2px solid black;
-    background: white;
-}
-
-button:hover {
-    background: #f1f1f1;
+#send-btn {
+  flex: 1;
+  min-width: clamp(60px, 10vw, 80px);
+  font-size: clamp(0.85rem, 1.8vw, 1rem);
+  padding: clamp(4px, 1vw, 8px);
 }

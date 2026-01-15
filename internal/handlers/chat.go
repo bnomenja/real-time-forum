@@ -19,14 +19,6 @@ var (
 )
 
 func (a *App) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		helpers.Respond(w, &models.Resp{
-			Code:  405,
-			Error: fmt.Errorf("method not allowed"),
-		})
-
-		return
-	}
 
 	cookie, err := r.Cookie("session")
 	if err != nil {

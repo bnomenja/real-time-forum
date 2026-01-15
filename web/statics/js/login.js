@@ -1,3 +1,7 @@
+import { chatState } from './chat.js';
+import { HandleRouting } from './router.js';
+
+
 export const handleLoginFront = async () => {
     const userCredentials = {
         nickName: "",
@@ -28,7 +32,11 @@ export const handleLoginFront = async () => {
 
         const res = await resp.json()
 
-        window.location = "/"
+        chatState.socket = new WebSocket("ws://localhost:8080/ws/chat")
+        chatState.nickName = userData.nickName
+
+        window.history.pushState({}, "", "/")
+        HandleRouting()
 
     } catch (err) {
         console.error(err)
