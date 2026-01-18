@@ -1,4 +1,4 @@
-import { chatState } from './chat.js';
+import { currentUser } from './chat.js';
 import { HandleRouting } from './router.js';
 
 
@@ -32,10 +32,9 @@ export const handleLoginFront = async () => {
 
         const res = await resp.json()
 
-        chatState.socket = new WebSocket("ws://localhost:8080/ws/chat")
-        chatState.nickName = userData.nickName
+        currentUser.nickName = userCredentials.nickName
 
-        window.history.pushState({}, "", "/")
+        window.history.pushState({}, "", "/chat")
         HandleRouting()
 
     } catch (err) {

@@ -1,5 +1,7 @@
-import { chatState } from './chat.js';
+import { currentUser } from './chat.js';
 import { HandleRouting } from './router.js';
+
+export const userData = { online: false }
 
 const getData = (userData) => {
     const gender = document.querySelector('input[name="gender"]:checked');
@@ -71,8 +73,6 @@ const verifyData = (userData) => {
 }
 
 export const handleregisterFront = async () => {
-    const userData = {}
-
     getData(userData)
     verifyData(userData)
 
@@ -91,14 +91,10 @@ export const handleregisterFront = async () => {
         })
 
         const res = await resp.json()
-        console.log(res)
+        currentUser.nickName = userData.nickName
 
-        chatState.socket = new WebSocket("ws://localhost:8080/ws/chat")
-        chatState.nickName = userData.nickName
-
-        window.history.pushState({}, "", "/")
+        window.history.pushState({}, "", "/chat")
         HandleRouting()
-
 
     } catch (err) {
         console.error(err)

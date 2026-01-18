@@ -99,5 +99,5 @@ const (
 	Select_password_by_nickname = `SELECT password, id FROM user WHERE nickname = ?`
 	Select_password_by_email    = `SELECT password, id, nickname FROM user WHERE email = ?`
 	Delete_session_by_user_id   = `DELETE FROM session WHERE user_id = ?`
-	Delete_session_by_id        = `DELETE session where id = ?`
+	Delete_session_by_id        = `DELETE FROM session WHERE id = ?`
 )
