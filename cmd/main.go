@@ -40,6 +40,7 @@ func main() {
 	http.HandleFunc("/", app.HomeHanlder)
 	http.HandleFunc("/register", app.HandleRegister)
 	http.HandleFunc("/login", app.HandleLogin)
+	http.HandleFunc("/logout", app.LogoutHandler)
 	http.HandleFunc("/statics/", handlers.ServeStatic)
 	http.HandleFunc("/ws/chat", app.WebsocketHandler)
 
