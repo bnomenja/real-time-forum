@@ -117,23 +117,12 @@ export const chatTemplate = () => {
         <div class="global-container">
             <div class="user-list-container">
                 <h3>Users</h3>
-                
-                <div class="user-list-wrapper">
-                </div>
+                <div class="user-list-wrapper"></div>
             </div>
 
             <div class="chat-container">
-                <div class="user-data">
-                    <div class="avatar">
-                        <img src="statics/assets/user.png" alt="profile-img">
-                        <div class="online-marker"></div>
-                    </div>
-                    <span id="receiver">Alice</span>
-                </div>
-
                 <div id="messages">
-                    <div class="message message-other">Salut, tu vas bien ?</div>
-                    <div class="message message-me">Oui, et toi ?</div>
+                <img src="statics/assets/sleep.png" alt="sleep-icon" id="sleep-icon">
                 </div>
 
                 <div id="chat-input">

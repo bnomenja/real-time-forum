@@ -3,8 +3,8 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"time"
 
 	"real-time-forum/internal/models"
 
@@ -25,20 +25,21 @@ func (a *App) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var nickname string
-	var id string
+	var nickname, userID string
 	err = a.DB.QueryRow(`
-        SELECT u.nickname, u.id
-        FROM user u
-        JOIN session s ON s.user_id = u.id
-        WHERE s.id = ?
-    `, cookie.Value).Scan(&nickname, &id)
+		SELECT u.nickname, u.id
+		FROM user u
+		JOIN session s ON s.user_id = u.id
+		WHERE s.id = ?
+	`, cookie.Value).Scan(&nickname, &userID)
 	if err != nil {
 		http.Error(w, "invalid session", http.StatusUnauthorized)
 		return
 	}
 
-	upgrader := websocket.Upgrader{}
+	upgrader := websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool { return true },
+	}
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -46,7 +47,7 @@ func (a *App) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := models.Client{
-		ID:       id,
+		ID:       userID,
 		NickName: nickname,
 		Ws:       ws,
 	}
@@ -62,121 +63,103 @@ func (a *App) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var msg models.Message
-
 		if err := json.Unmarshal(payload, &msg); err != nil {
-			ws.WriteJSON(map[string]string{
-				"type": "error",
-				"msg":  "invalid message format",
-			})
-			fmt.Println("errooooor:", err)
 			continue
 		}
 
 		msg.Sender = client.NickName
+		msg.Time = time.Now()
 
 		broadcast <- msg
 	}
 }
 
 func Broadcast(db *sql.DB) {
-	clients := map[string]*websocket.Conn{}
+	clients := make(map[string]*websocket.Conn)
 
 	for {
 		select {
+
 		case client := <-connect:
 			clients[client.NickName] = client.Ws
+
+			rows, err := db.Query(`SELECT nickname FROM user WHERE id != ?`, client.ID)
+			if err != nil {
+				continue
+			}
+
 			users := []models.OtherClient{}
 
-			row, err := db.Query(`SELECT nickname FROM user WHERE id != ?`, client.ID)
-			if err != nil {
-				fmt.Println("error while getting all users", err)
-				// render error 500
-				return
-			}
-
-			defer row.Close()
-
-			for row.Next() {
-				user := models.OtherClient{Online: false}
-
-				if err := row.Scan(&user.NickName); err != nil {
-					fmt.Println("error while getting one users", err)
-					// render error 500
-					return
-				}
-
-				otherConn, ok := clients[user.NickName]
-				if ok {
-					user.Online = true
-					var resp struct {
-						Event string `json:"event"`
-						User  string `json:"user"`
-					}
-
-					resp.Event = "join"
-					resp.User = client.NickName
-
-					otherConn.WriteJSON(resp)
-				}
-
-				users = append(users, user)
-			}
-
-			var resp struct {
-				Event string               `json:"event"`
-				Users []models.OtherClient `json:"users"`
-			}
-
-			resp.Event = "init"
-			resp.Users = users
-
-			client.Ws.WriteJSON(resp)
-
-		case msg := <-broadcast:
-			receiverConn, ok := clients[msg.Receiver]
-			if !ok {
-				fmt.Println("receiver is not online")
-			} else {
-				var resp struct {
-					Event       string         `json:"event"`
-					MessageData models.Message `json:"message"`
-				}
-
-				resp.Event = "chat"
-				resp.MessageData = msg
-
-				if err := receiverConn.WriteJSON(resp); err != nil {
-					receiverConn.Close()
-					delete(clients, msg.Receiver)
+			for rows.Next() {
+				var u models.OtherClient
+				if err := rows.Scan(&u.NickName); err != nil {
 					continue
 				}
+				_, u.Online = clients[u.NickName]
+				users = append(users, u)
+			}
+			rows.Close()
+
+			client.Ws.WriteJSON(map[string]any{
+				"event": "init",
+				"users": users,
+			})
+
+		case msg := <-broadcast:
+
+			if msg.Type == "load_first" {
+				rows, err := db.Query(`
+					SELECT pm.created_at, pm.content, us.nickname, ur.nickname
+					FROM private_message pm
+					JOIN user us ON us.id = pm.sender_id
+					JOIN user ur ON ur.id = pm.receiver_id
+					WHERE (us.nickname = ? AND ur.nickname = ?)
+					   OR (us.nickname = ? AND ur.nickname = ?)
+					ORDER BY pm.created_at DESC
+					LIMIT 10
+				`, msg.Sender, msg.Receiver, msg.Receiver, msg.Sender)
+				if err != nil {
+					continue
+				}
+
+				messages := []models.Message{}
+
+				for rows.Next() {
+					var m models.Message
+					if err := rows.Scan(&m.Time, &m.Content, &m.Sender, &m.Receiver); err != nil {
+						continue
+					}
+					messages = append(messages, m)
+				}
+				rows.Close()
+
+				if conn, ok := clients[msg.Sender]; ok {
+					conn.WriteJSON(map[string]any{
+						"event":    "load_message",
+						"messages": messages,
+					})
+				}
+				continue
 			}
 
-			message_id, err := uuid.NewV4()
-			if err != nil {
-				fmt.Println("error generating id: ", err)
-				// render error 500
-				return
+			if receiverConn, ok := clients[msg.Receiver]; ok {
+				receiverConn.WriteJSON(map[string]any{
+					"event":   "chat",
+					"message": msg,
+				})
 			}
 
-			_, err = db.Exec(`
-    		INSERT INTO private_message (id, sender_id, receiver_id, content, created_at)
-    		VALUES (?,
-        	(SELECT id FROM user WHERE nickname = ?),
-        	(SELECT id FROM user WHERE nickname = ?),
-			?,?)
-			`,
-				message_id.String(),
-				msg.Sender,
-				msg.Receiver,
-				msg.Content,
-				msg.Time,
-			)
-			if err != nil {
-				fmt.Println("error inserting msg in database: ", err)
-				// render error 500
-				return
-			}
+			messageID, _ := uuid.NewV4()
+
+			db.Exec(`
+				INSERT INTO private_message (id, sender_id, receiver_id, content)
+				VALUES (
+					?,
+					(SELECT id FROM user WHERE nickname = ?),
+					(SELECT id FROM user WHERE nickname = ?),
+					?
+				)
+			`, messageID.String(), msg.Sender, msg.Receiver, msg.Content)
 
 		case client := <-disconnect:
 			delete(clients, client.NickName)

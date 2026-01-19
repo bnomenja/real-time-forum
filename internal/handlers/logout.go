@@ -9,12 +9,12 @@ import (
 )
 
 func (a *App) LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+	if r.Method != http.MethodPost {
 		helpers.Respond(w, &models.Resp{
 			Code:  405,
 			Error: errors.New("method not allowed"),
 		})
-		
+
 		return
 	}
 

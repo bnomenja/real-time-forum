@@ -1,8 +1,6 @@
 import { currentUser } from './chat.js';
 import { HandleRouting } from './router.js';
 
-export const userData = { online: false }
-
 const getData = (userData) => {
     const gender = document.querySelector('input[name="gender"]:checked');
     userData.gender = gender ? gender.value : ""
@@ -73,8 +71,11 @@ const verifyData = (userData) => {
 }
 
 export const handleregisterFront = async () => {
+    const userData = { online: false }
+
     getData(userData)
     verifyData(userData)
+
 
     if (userData.error) {
         const inputError = document.querySelector(".input-error")

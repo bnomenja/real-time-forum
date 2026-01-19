@@ -283,6 +283,14 @@ img {
   min-height: 0;
 }
 
+#sleep-icon {
+  position: relative;
+  top: 35%;
+  left: 35%;
+  width: 25%;
+  height: auto;
+}
+
 .user-list-container h3 {
   font-size: clamp(0.9rem, 2vw, 1.1rem);
   padding: clamp(8px, 1.5vw, 12px);

@@ -4,12 +4,10 @@ export const currentUser = {
 }
 
 export class Message {
-    constructor(content, type, receiver = null) {
+    constructor(content, type, receiver) {
         this.content = content;
-        this.sender = currentUser.nickName;
         this.type = type;
-        this.receiver = receiver;
-        this.time = Date.now()
+        this.receiver = receiver
     }
 
     create() {
@@ -23,13 +21,40 @@ export class Message {
         return message
     }
 }
-
-export const SwapChat = (nickName) => {
+export const SwapChat = (user) => {
+    const chatCont = document.querySelector(".chat-container")
     const receiver = document.getElementById("receiver")
-    receiver.textContent = nickName
+
+    if (!receiver) {
+        chatCont.prepend(createUserElement(user, true))
+        return
+    }
+
+    if (receiver.textContent === user.nickname) {
+        chatCont.firstElementChild.remove()
+
+        return
+    }
+
+    receiver.textContent = user.nickname
+
+    const avatar = chatCont.firstElementChild.querySelector(".avatar")
+    if (!avatar) return
+
+    const marker = avatar.querySelector(".online-marker")
+
+    if (user.online && !marker) {
+        const newMarker = document.createElement("div")
+        newMarker.classList.add("online-marker")
+        avatar.append(newMarker)
+    }
+
+    if (!user.online && marker) {
+        marker.remove()
+    }
 }
 
-const createUserElement = (user) => {
+const createUserElement = (user, receiver = false) => {
     const container = document.createElement("div")
     container.classList.add("user-data")
     const avatar = document.createElement("div")
@@ -38,9 +63,10 @@ const createUserElement = (user) => {
     img.src = "statics/assets/user.png"
     img.alt = "profile-img"
     const span = document.createElement("span")
-    span.classList.add("nickname")
-    span.textContent = user.nickname
+    if (receiver) span.id = "receiver"
+    else span.classList.add("nickname")
 
+    span.textContent = user.nickname
     avatar.append(img)
     if (user.online) {
         const marker = document.createElement("div")
@@ -49,79 +75,68 @@ const createUserElement = (user) => {
     }
 
     container.append(avatar, span)
+    container.addEventListener("click", () => {
+        const nickname = container.children[1].textContent
+        const online = container.children[0].children.length === 2
+
+        SwapChat({ nickname, online })
+
+        currentUser.socket.send(JSON.stringify({ sender: currentUser.nickName, receiver: nickname, type: "load_first" }))
+    })
 
     return container
 }
 
 const addMessage = (msg) => {
-    const receiver = document.getElementById("receiver")
-
-    const Mymsg = new Message(msg.content, "other", msg.sender)
-
-    receiver.textContent = msg.sender
-
-    document.getElementById("messages").append(Mymsg.create())
-
+    const type = msg.sender === currentUser.nickName ? "me" : "other"
+    const message = new Message(msg.content, type)
+    document.getElementById("messages").append(message.create())
 }
 
-export const handleChatFront = async () => {
+export const handleChatFront = () => {
     if (currentUser.socket) return
 
-    currentUser.socket = new WebSocket('ws://localhost:8080/ws/chat')
-
-    currentUser.socket.onopen = () => {
-        console.log("connection started");
-
-    }
-
-    currentUser.socket.onclose = () => { }
+    currentUser.socket = new WebSocket("ws://localhost:8080/ws/chat")
 
     currentUser.socket.onmessage = (e) => {
-        const msg = JSON.parse(e.data)
+        const data = JSON.parse(e.data)
 
-        switch (msg.event) {
+        switch (data.event) {
             case "init":
-                const frag = document.createDocumentFragment()
-
-                msg.users.sort((a, b) => a.nickname.localeCompare(b.nickname))
-                for (const user of msg.users) {
-                    const userELement = createUserElement(user)
-
-                    frag.append(userELement)
-                }
-
-                const userList = document.querySelector(".user-list-wrapper")
-
-                userList.append(frag)
-
+                const list = document.querySelector(".user-list-wrapper")
+                list.innerHTML = ""
+                data.users.forEach(u => list.append(createUserElement(u)))
                 break
 
             case "chat":
-                addMessage(msg.message)
+                addMessage(data.message)
                 break
 
-            case "join":
-                renderUsers()
-                break
-
-            case "leave":
-                renderUsers()
+            case "load_message":
+                const cont = document.getElementById("messages")
+                cont.innerHTML = ""
+                data.messages.reverse().forEach(addMessage)
                 break
         }
     }
 
-    currentUser.socket.onerror = () => { }
+    currentUser.socket.onclose = () => {
+        currentUser.socket = null
+    }
 }
 
 export const sendMessage = () => {
-    const receiver = document.getElementById("receiver").textContent
-    const chatInput = document.getElementById("chat-textarea")
-    const Mymsg = new Message(chatInput.value, "me", receiver)
+    const receiver = document.getElementById("receiver")?.textContent
+    const input = document.getElementById("chat-textarea")
+    if (!receiver || !input.value) return
 
-    currentUser.socket.send(JSON.stringify(Mymsg))
+    addMessage({ sender: currentUser.nickName, content: input.value })
 
+    currentUser.socket.send(JSON.stringify({
+        type: "chat",
+        receiver,
+        content: input.value
+    }))
 
-    document.getElementById("messages").append(Mymsg.create())
-
-    chatInput.value = ""
+    input.value = ""
 }
