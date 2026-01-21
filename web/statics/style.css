@@ -1,143 +1,486 @@
+/* ===== RESET & BASE ===== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+html,
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f5f5f5;
+  height: 100%;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: clamp(1rem, 3vw, 2rem);
-}
-
-#register-container {
-  background: white;
-  padding: clamp(1.5rem, 5vw, 2.5rem);
-  border-radius: clamp(0.5rem, 1vw, 0.75rem);
-  border: clamp(1px, 0.3vw, 2px) solid #ddd;
-  width: 100%;
-  max-width: min(500px, 90vw);
-}
-
-#message-container {
-  display: flex;
-  align-items: center;
   flex-direction: column;
   justify-content: center;
-  background: white;
-  padding: clamp(1.5rem, 5vw, 2.5rem);
-  border-radius: clamp(0.5rem, 1vw, 0.75rem);
-  border: clamp(1px, 0.3vw, 2px) solid #ddd;
+  padding: clamp(3px, 1vw, 5px);
+  font-family: system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+}
+
+/* ===== MAIN CONTAINER ===== */
+#main-container {
   width: 100%;
-  max-width: min(500px, 90vw);
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
 }
 
-.input-error {
-  display: none;
-  margin-bottom: clamp(0.75rem, 3vh, 1.25rem);
-  padding: clamp(0.5rem, 2vw, 0.75rem);
-  border: 1px solid #e0b4b4;
-  border-radius: clamp(0.25rem, 0.5vw, 0.375rem);
-  background: #fff6f6;
-  color: #9f3a38;
-  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
-  font-weight: bold;
-  line-height: 1.4;
+/* ===== NAVIGATION BAR ===== */
+#nav-bar {
+  display: flex;
+  justify-content: right;
+  min-height: clamp(60px, 9vh, 100px);
+  margin-bottom: clamp(5px, 1vh, 15px);
+}
 
+/* ===== HOME PAGE ===== */
+.home-nav {
+  display: flex;
+  gap: clamp(15px, 3vw, 30px);
+  justify-content: center;
+  padding: clamp(10px, 2vw, 20px);
+  border: 2px solid black;
+  margin-bottom: clamp(20px, 4vh, 40px);
+}
+
+.home-nav .link {
+  font-size: clamp(0.9rem, 2.2vw, 1.1rem);
+  text-decoration: none;
+  color: #000;
+  padding: clamp(8px, 1.5vw, 12px);
+  border: 1px solid black;
+  transition: background-color 0.2s;
+}
+
+.home-nav .link:hover {
+  background-color: #f0f0f0;
+}
+
+.home-content {
   text-align: center;
-  word-break: break-word;
-  overflow-wrap: break-word;
+  padding: clamp(20px, 4vw, 40px);
 }
 
+.home-content h1 {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  margin-bottom: clamp(15px, 3vh, 25px);
+}
 
-label {
-  display: inline-block;
-  width: clamp(70px, 20vw, 120px);
-  margin-bottom: 0;
+.home-content p {
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
   color: #555;
-  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
-  font-weight: 500;
-  vertical-align: middle;
+}
+
+/* ===== FORMS ===== */
+.form-container {
+  width: clamp(280px, 35%, 500px);
+  border: 2px solid black;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  padding: clamp(15px, 3vw, 20px);
+}
+
+.register {
+  width: clamp(280px, 35%, 500px);
+  aspect-ratio: 3/4;
+}
+
+.login {
+  width: clamp(280px, 33%, 450px);
+  aspect-ratio: 3/3.5;
+}
+
+#gender-container,
+.form-row {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(5px, 1.5vw, 10px);
+}
+
+#gender-container label,
+.form-row label {
+  flex: 1 1 clamp(80px, 30%, 130px);
+  min-width: fit-content;
+  font-size: clamp(0.9rem, 2.2vw, 1.05rem);
+}
+
+#gender-container .gender-input,
+.form-row input {
+  flex: 2 1 clamp(150px, 60%, 310px);
+  font-size: clamp(0.9rem, 2.2vw, 1.05rem);
+  padding: clamp(6px, 1.2vw, 10px);
+  border: 1px solid #ccc;
+}
+
+.gender-input {
+  display: flex;
+  gap: clamp(10px, 2vw, 15px);
+}
+
+button[type="submit"],
+#register-submit-btn,
+#login-submit-btn {
+  padding: clamp(8px, 1.5vw, 12px) clamp(20px, 4vw, 30px);
+  font-size: clamp(0.9rem, 2.2vw, 1.05rem);
+  background-color: #000;
+  color: #fff;
+  border: 2px solid black;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+button[type="submit"]:hover,
+#register-submit-btn:hover,
+#login-submit-btn:hover {
+  background-color: #333;
+}
+
+.form-container p {
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
+  text-align: center;
+}
+
+.form-container .link {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.form-container .link:hover {
+  text-decoration: underline;
+}
+
+/* ===== ERROR MESSAGES ===== */
+.input-error {
+  width: 95%;
+  padding: clamp(8px, 2vw, 12px);
+  margin-bottom: clamp(10px, 2vw, 15px);
+  background-color: #fdecea;
+  color: #b71c1c;
+  border: 1px solid #f5c2c7;
+  border-radius: clamp(3px, 0.5vw, 4px);
+  text-align: center;
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  display: none;
+}
+
+.input-error:not(:empty) {
+  display: block;
+}
+
+/* ===== ERROR PAGE ===== */
+.error-container {
+  text-align: center;
+  padding: clamp(30px, 5vw, 50px);
+}
+
+.error-container h1 {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  margin-bottom: clamp(15px, 3vh, 25px);
+  color: #b71c1c;
+}
+
+.error-container p {
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  margin-bottom: clamp(20px, 4vh, 30px);
+  color: #555;
+}
+
+.error-container .link {
+  display: inline-block;
+  padding: clamp(8px, 1.5vw, 12px) clamp(20px, 4vw, 30px);
+  background-color: #000;
+  color: #fff;
+  text-decoration: none;
+  border: 2px solid black;
+}
+
+.error-container .link:hover {
+  background-color: #333;
+}
+
+/* ===== PROFILE ===== */
+#profile {
+  position: absolute;
+  width: clamp(80px, 10vw, 100px);
+  aspect-ratio: 3/4;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  z-index: 10;
+  margin-top: clamp(10px, 2vh, 16px);
+  margin-right: clamp(16px, 3vw, 32px);
+  padding-top: clamp(8px, 1.5vh, 10px);
+}
+
+#profile:hover .button-container {
+  display: flex;
+}
+
+.button-container {
+  display: none;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  flex: 2;
+  border: 2px solid black;
+  background-color: #fff;
+  width: 100%;
+  gap: clamp(5px, 1vh, 8px);
+  padding: clamp(5px, 1vw, 8px);
+}
+
+.button-container button {
+  width: 100%;
+  padding: clamp(6px, 1.2vw, 10px);
+  font-size: clamp(0.75rem, 1.8vw, 0.9rem);
+  border: 1px solid black;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.button-container button:hover {
+  background-color: #e0e0e0;
+}
+
+img {
+  width: clamp(40px, 6vw, 50px);
+  height: clamp(40px, 6vw, 50px);
+}
+
+/* ===== CHAT ===== */
+.global-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: clamp(8px, 2vw, 16px);
+  padding: clamp(8px, 2vw, 16px);
+  border: 2px solid black;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.user-list-container {
+  flex: 1;
+  min-width: clamp(120px, 20%, 200px);
+  max-width: clamp(200px, 25%, 300px);
+  border: 2px solid black;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  min-height: 0;
+}
+
+#sleep-icon {
+  position: relative;
+  top: 35%;
+  left: 35%;
+  width: 25%;
+  height: auto;
+}
+
+.user-list-container h3 {
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
+  padding: clamp(8px, 1.5vw, 12px);
+  text-align: center;
+  border-bottom: 2px solid black;
+  background-color: #f9f9f9;
   flex-shrink: 0;
 }
 
-.form-row {
+.user-list-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: clamp(8px, 1.5vw, 12px);
   display: flex;
-  align-items: center;
-  gap: clamp(0.5rem, 2vw, 1rem);
-  margin-bottom: clamp(0.75rem, 3vh, 1.25rem);
+  flex-direction: column;
+  gap: clamp(5px, 1vh, 7px);
+  min-height: 0;
 }
 
-input[type="text"],
-input[type="number"],
-input[type="email"],
-input[type="password"] {
+/* Scrollbar pour user-list */
+.user-list-wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+
+.user-list-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-left: 1px solid #ddd;
+}
+
+.user-list-wrapper::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.user-list-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.user-data {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.3rem, 1vw, 0.5rem);
+  padding: clamp(0.4rem, 1vw, 0.6rem);
+  border: 1px solid black;
+  font-size: clamp(0.85rem, 1.8vw, 1rem);
+  width: 100%;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.user-data:hover {
+  background-color: #f0f0f0;
+}
+
+.msg-notif {
+  background-color: #b71c1c;
+  color: #f1f1f1;
+  border-radius: 50%;
+  width: clamp(20px, 4vw, 25px);
+  height: clamp(20px, 4vw, 25px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.7rem, 1.5vw, 0.85rem);
+  font-weight: bold;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.avatar {
+  position: relative;
+  width: clamp(30px, 5vw, 36px);
+  height: clamp(30px, 5vw, 36px);
+  flex-shrink: 0;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+}
+
+.online-marker {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: clamp(6px, 1vw, 8px);
+  height: clamp(6px, 1vw, 8px);
+  border-radius: 50%;
+  background: greenyellow;
+  border: 1px solid black;
+}
+
+.chat-container {
+  flex: 3;
+  min-width: 0;
+  border: 2px solid black;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(4px, 0.8vw, 6px);
+  gap: clamp(4px, 1vh, 6px);
+  overflow: hidden;
+  min-height: 0;
+}
+
+#messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid black;
+  padding: clamp(8px, 1.5vw, 12px);
+  gap: clamp(5px, 1vh, 8px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  background-color: #fafafa;
+}
+
+/* Scrollbar pour messages */
+#messages::-webkit-scrollbar {
+  width: 10px;
+}
+
+#messages::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-left: 1px solid #ddd;
+}
+
+#messages::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 5px;
+}
+
+#messages::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.message {
+  display: flex;
+  max-width: 75%;
+  white-space: pre-wrap;
+  padding: clamp(0.4rem, 1.2vw, 0.6rem) clamp(0.6rem, 1.5vw, 0.9rem);
+  border-radius: clamp(0.8rem, 2vw, 1rem);
+  line-height: 1.4;
+  border: 1px solid black;
+  word-break: break-word;
+  font-size: clamp(0.85rem, 1.8vw, 1rem);
+}
+
+.message-other {
+  align-self: flex-start;
+  background: #f1f1f1;
+}
+
+.message-me {
+  align-self: flex-end;
+  background: #d1e7ff;
+}
+
+#chat-input {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  padding: clamp(5px, 1.2vw, 8px);
+  border: 2px solid black;
+  gap: clamp(6px, 1.2vw, 10px);
+}
+
+#chat-textarea {
   flex: 1;
   min-width: 0;
-  padding: clamp(0.5rem, 2vw, 0.75rem);
-  margin-bottom: 0;
-  border: 1px solid #ddd;
-  border-radius: clamp(0.25rem, 0.5vw, 0.375rem);
-  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
-  transition: border-color 0.3s;
+  font-size: clamp(0.85rem, 1.8vw, 1rem);
+  padding: clamp(6px, 1.2vw, 10px);
+  resize: none;
+  border: 1px solid #ccc;
+  font-family: inherit;
 }
 
-input[type="text"]:focus,
-input[type="number"]:focus,
-input[type="email"]:focus,
-input[type="password"]:focus {
-  outline: none;
-  border-color: #4a90e2;
-}
-
-input[type="radio"] {
-  margin-right: clamp(0.25rem, 1vw, 0.5rem);
-  margin-left: clamp(0.5rem, 2vw, 0.75rem);
+#send-btn {
+  flex: 0 0 auto;
+  min-width: clamp(60px, 10vw, 80px);
+  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+  padding: clamp(4px, 1vw, 8px);
+  border: 2px solid black;
+  background-color: #000;
+  color: #fff;
   cursor: pointer;
-  width: clamp(14px, 2vw, 16px);
-  height: clamp(14px, 2vw, 16px);
+  transition: background-color 0.2s;
 }
 
-#gender-container {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: clamp(0.25rem, 1.5vw, 0.75rem);
-  margin-bottom: clamp(0.75rem, 3vh, 1.25rem);
-}
-
-#gender-container label:first-child {
-  width: clamp(70px, 20vw, 120px);
-  flex-shrink: 0;
-}
-
-#gender-container>label:not(:first-child) {
-  width: auto;
-  margin-left: 0;
-  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-}
-
-button {
-  width: 100%;
-  padding: clamp(0.75rem, 2.5vh, 1rem) clamp(1rem, 3vw, 1.5rem);
-  margin-top: clamp(0.5rem, 2vh, 1rem);
-  background: #4a90e2;
-  color: white;
-  border: none;
-  border-radius: clamp(0.25rem, 0.5vw, 0.375rem);
-  font-size: clamp(0.875rem, 3vw, 1rem);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-button:hover {
-  background: #357abd;
+#send-btn:hover {
+  background-color: #333;
 }

@@ -1,3 +1,19 @@
+import { currentUser } from './chat.js';
+import { HandleRouting } from './router.js';
+
+const getData = (userData) => {
+    const gender = document.querySelector('input[name="gender"]:checked');
+    userData.gender = gender ? gender.value : ""
+
+    const inputs = document.querySelectorAll(".form-row")
+    inputs.forEach(el => {
+        const data = el.children[1]
+        userData[data.id] = data ? data.value : ""
+    })
+
+    userData.age = Number(userData.age ??= 0)
+}
+
 const verifyData = (userData) => {
     Object.entries(userData).forEach(([key, val]) => {
         const v = String(val).trim()
@@ -54,33 +70,19 @@ const verifyData = (userData) => {
     })
 }
 
-const getData = (userData) => {
-    const gender = document.querySelector('input[name="gender"]:checked');
-    userData.gender = gender ? gender.value : ""
-
-    const inputs = document.querySelectorAll(".form-row")
-    inputs.forEach(el => {
-        const data = el.children[1]
-        userData[data.id] = data ? data.value : ""
-    })
-
-    userData.age = Number(userData.age ??= 0)
-}
-
 export const handleregisterFront = async () => {
-    const userData = {}
+    const userData = { online: false }
 
     getData(userData)
     verifyData(userData)
 
+
     if (userData.error) {
-        const inputError = document.getElementsByClassName("input-error")[0]
+        const inputError = document.querySelector(".input-error")
         inputError.textContent = userData.error
         inputError.style.display = "block"
         return
     }
-    
-    console.log(userData)
 
     try {
         const resp = await fetch("/register", {
@@ -89,17 +91,14 @@ export const handleregisterFront = async () => {
             body: JSON.stringify(userData)
         })
 
-        // if (!resp.ok) throw new Error("failed to send data")
-
         const res = await resp.json()
+        currentUser.nickName = userData.nickName
 
-        document.body.innerHTML = `
-            <div id="message-container">
-            <h1>${res.code}</h1>
-            <p>${res.message}</p>
-            </div>
-        `
+        window.history.pushState({}, "", "/chat")
+        HandleRouting()
+
     } catch (err) {
         console.error(err)
     }
+
 }

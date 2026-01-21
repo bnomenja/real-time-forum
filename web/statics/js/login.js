@@ -1,0 +1,43 @@
+import { currentUser } from './chat.js';
+import { HandleRouting } from './router.js';
+
+
+export const handleLoginFront = async () => {
+    const userCredentials = {
+        nickName: "",
+        email: "",
+        password: "",
+    }
+
+    const identifier = document.getElementById("identifier").value
+    const password = document.getElementById("password").value
+
+    if (!password || !identifier) {
+        document.querySelector(".input-error").textContent = "please fill all the fields"
+        return
+    }
+
+    if (String(identifier).match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) userCredentials.email = identifier
+    else userCredentials.nickName = identifier
+    userCredentials.password = password
+
+    console.log(userCredentials)
+
+    try {
+        const resp = await fetch("/login", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(userCredentials)
+        })
+
+        const res = await resp.json()
+
+        currentUser.nickName = userCredentials.nickName
+
+        window.history.pushState({}, "", "/chat")
+        HandleRouting()
+
+    } catch (err) {
+        console.error(err)
+    }
+}

@@ -1,36 +1,25 @@
 package handlers
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
-	"text/template"
+
+	"real-time-forum/internal/helpers"
+	"real-time-forum/internal/logic"
+	"real-time-forum/internal/models"
 )
 
 func (a *App) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
+
 	case http.MethodGet:
-		if len(r.URL.RawQuery) > 0 {
-			// render a 405 error
-			return
-		}
-
-		tmpl, err := template.ParseFiles("../web/index.html")
-		if err != nil {
-			fmt.Println("error while parsing the template")
-			// render a 500 error
-			return
-		}
-
-		err = tmpl.Execute(w, nil)
-		if err != nil {
-			fmt.Println("error while executing the template")
-			// render a 500 error
-			return
-		}
+		helpers.RenderMainpage(w)
 	case http.MethodPost:
-		
+		logic.Login(w, r, a.DB)
 	default:
-		// render 405
-		return
+		helpers.Respond(w, &models.Resp{
+			Code:  405,
+			Error: errors.New("method not allowed"),
+		})
 	}
 }
