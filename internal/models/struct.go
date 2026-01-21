@@ -34,11 +34,13 @@ type Message struct {
 	Receiver string    `json:"receiver"`
 	Content  string    `json:"content"`
 	Time     time.Time `json:"time"`
+	Offset   int       `json:"offset"`
 }
 
 type OtherClient struct {
-	NickName string `json:"nickname"`
-	Online   bool   `json:"online"`
+	LastChat time.Time `json:"lastChat"`
+	NickName string    `json:"nickname"`
+	Online   bool      `json:"online"`
 }
 
 type Resp struct {

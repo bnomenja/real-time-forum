@@ -346,6 +346,21 @@ img {
   background-color: #f0f0f0;
 }
 
+.msg-notif {
+  background-color: #b71c1c;
+  color: #f1f1f1;
+  border-radius: 50%;
+  width: clamp(20px, 4vw, 25px);
+  height: clamp(20px, 4vw, 25px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.7rem, 1.5vw, 0.85rem);
+  font-weight: bold;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 .avatar {
   position: relative;
   width: clamp(30px, 5vw, 36px);

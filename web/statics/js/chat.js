@@ -21,53 +21,101 @@ export class Message {
         return message
     }
 }
-export const SwapChat = (user) => {
+const SwapChat = (user) => {
+    const receiverEl = document.getElementById("receiver")
+    const userEL = document.getElementById(user.nickname)
+    if (userEL.children.length === 3) userEL.lastChild.remove()
+
+    if (!receiverEl) {
+        openChat(user)
+        return
+    }
+
+    const currentReceiver = receiverEl.textContent
+
+    if (currentReceiver === user.nickname) {
+        closeChat()
+        return
+    }
+
+    switchChat(user)
+}
+
+const openChat = (user) => {
     const chatCont = document.querySelector(".chat-container")
-    const receiver = document.getElementById("receiver")
 
-    if (!receiver) {
-        chatCont.prepend(createUserElement(user, true))
-        return
-    }
+    const header = createUserElement(user, false, true)
+    header.removeAttribute("id")
 
-    if (receiver.textContent === user.nickname) {
-        chatCont.firstElementChild.remove()
+    chatCont.prepend(header)
 
-        return
-    }
+    currentUser.socket.send(JSON.stringify({
+        sender: currentUser.nickName,
+        receiver: user.nickname,
+        type: "load_first"
+    }))
+}
 
-    receiver.textContent = user.nickname
+const closeChat = () => {
+    const chatCont = document.querySelector(".chat-container")
+    const messages = document.getElementById("messages")
 
-    const avatar = chatCont.firstElementChild.querySelector(".avatar")
+    chatCont.firstElementChild?.remove()
+
+    messages.innerHTML = `
+        <img src="statics/assets/sleep.png" alt="sleep-icon" id="sleep-icon">
+    `
+}
+
+const switchChat = (user) => {
+    const chatCont = document.querySelector(".chat-container")
+    const receiverEl = document.getElementById("receiver")
+
+    receiverEl.textContent = user.nickname
+    updateOnlineMarker(chatCont.firstElementChild, user.online)
+
+    currentUser.socket.send(JSON.stringify({
+        sender: currentUser.nickName,
+        receiver: user.nickname,
+        type: "load_first"
+    }))
+}
+
+
+const updateOnlineMarker = (header, online) => {
+    const avatar = header.querySelector(".avatar")
     if (!avatar) return
 
     const marker = avatar.querySelector(".online-marker")
 
-    if (user.online && !marker) {
-        const newMarker = document.createElement("div")
-        newMarker.classList.add("online-marker")
-        avatar.append(newMarker)
+    if (online && !marker) {
+        const m = document.createElement("div")
+        m.classList.add("online-marker")
+        avatar.append(m)
     }
 
-    if (!user.online && marker) {
+    if (!online && marker) {
         marker.remove()
     }
 }
 
-const createUserElement = (user, receiver = false) => {
+const createUserElement = (user, clickable = true, receiver = false) => {
     const container = document.createElement("div")
     container.classList.add("user-data")
+    container.id = user.nickname
+
     const avatar = document.createElement("div")
     avatar.classList.add("avatar")
+
     const img = document.createElement("img")
     img.src = "statics/assets/user.png"
-    img.alt = "profile-img"
+
     const span = document.createElement("span")
     if (receiver) span.id = "receiver"
-    else span.classList.add("nickname")
-
     span.textContent = user.nickname
+
     avatar.append(img)
+
     if (user.online) {
         const marker = document.createElement("div")
         marker.classList.add("online-marker")
@@ -75,22 +123,27 @@ const createUserElement = (user, receiver = false) => {
     }
 
     container.append(avatar, span)
-    container.addEventListener("click", () => {
-        const nickname = container.children[1].textContent
-        const online = container.children[0].children.length === 2
 
-        SwapChat({ nickname, online })
-
-        currentUser.socket.send(JSON.stringify({ sender: currentUser.nickName, receiver: nickname, type: "load_first" }))
-    })
+    if (clickable) {
+        container.addEventListener("click", () => {
+            SwapChat({ nickname: user.nickname, online: user.online })
+        })
+    }
 
     return container
 }
 
-const addMessage = (msg) => {
+const addMessage = (msg, history = false) => {
     const type = msg.sender === currentUser.nickName ? "me" : "other"
     const message = new Message(msg.content, type)
-    document.getElementById("messages").append(message.create())
+    const messagesContainer = document.getElementById("messages")
+
+    if (history) {
+        messagesContainer.insertBefore(message.create(), messagesContainer.children[1])
+    } else {
+        messagesContainer.append(message.create())
+        messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' })
+    }
 }
 
 export const handleChatFront = () => {
@@ -102,21 +155,107 @@ export const handleChatFront = () => {
         const data = JSON.parse(e.data)
 
         switch (data.event) {
-            case "init":
+            case "init": {
                 const list = document.querySelector(".user-list-wrapper")
                 list.innerHTML = ""
-                data.users.forEach(u => list.append(createUserElement(u)))
-                break
 
-            case "chat":
-                addMessage(data.message)
-                break
+                data.users.sort((a, b) => {
+                    const aHasChat = a.lastChat !== "0001-01-01T00:00:00Z"
+                    const bHasChat = b.lastChat !== "0001-01-01T00:00:00Z"
 
-            case "load_message":
+                    if (aHasChat && !bHasChat) return -1
+                    if (!aHasChat && bHasChat) return 1
+
+                    if (aHasChat && bHasChat) {
+                        return new Date(b.lastChat) - new Date(a.lastChat)
+                    }
+
+                    return String(a.nickname).localeCompare(String(b.nickname))
+                })
+
+                data.users.forEach(u => {
+                    list.append(createUserElement(u))
+                })
+                currentUser.nickName = data.nickname
+                break
+            }
+
+            case "chat": {
+                const receiver = document.getElementById("receiver")
+
+                if (!receiver || receiver.textContent !== data.message.sender) {
+                    const senderEl = document.getElementById(data.message.sender)
+                    const oldNotif = senderEl.querySelector(".msg-notif")
+                    const notifNumber = oldNotif ? Number(oldNotif.textContent) : 0
+                    senderEl.remove()
+
+                    const newUserEl = createUserElement({ nickname: data.message.sender, online: true }, true, false)
+                    const notif = document.createElement("div")
+                    notif.classList.add("msg-notif")
+                    notif.textContent = notifNumber + 1
+                    newUserEl.append(notif)
+
+                    const list = document.querySelector(".user-list-wrapper")
+                    list.prepend(newUserEl)
+                    list.scrollTo({ top: 0, behavior: "smooth" })
+                    break
+
+                } else {
+                    addMessage(data.message)
+                }
+
+                break
+            }
+
+            case "load_message": {
                 const cont = document.getElementById("messages")
-                cont.innerHTML = ""
-                data.messages.reverse().forEach(addMessage)
+                cont.innerHTML = `<div id="sentinel"></div>`
+                data.messages.forEach(msg => addMessage(msg, true))
+
+                cont.scrollTo({ top: cont.scrollHeight })
                 break
+            }
+
+            case "join": {
+                const m = document.createElement("div")
+                m.classList.add("online-marker")
+
+                const currentUserEl = document.getElementById(data.newcommers)
+                if (!currentUserEl) {
+                    const list = document.querySelector(".user-list-wrapper")
+                    list.append(createUserElement({ nickname: data.newcommers, online: true }))
+                    break
+                }
+
+                const oldNotif = currentUserEl.querySelector(".msg-notif")
+                const newUser = createUserElement({ nickname: data.newcommers, online: true }, true, false)
+                if (oldNotif) newUser.append(oldNotif)
+                currentUserEl.parentElement.insertBefore(newUser, currentUserEl)
+                currentUserEl.remove()
+
+                const receiver = document.getElementById('receiver')
+                if (receiver && receiver.textContent === data.newcommers) {
+                    receiver.parentElement.firstChild.append(m)
+                }
+
+                break
+            }
+
+            case "leave": {
+                const currentUserEl = document.getElementById(data.left)
+                const oldNotif = currentUserEl.querySelector(".msg-notif")
+                const newUser = createUserElement({ nickname: data.left, online: false }, true, false)
+                if (oldNotif) newUser.append(oldNotif)
+                currentUserEl.parentElement.insertBefore(newUser, currentUserEl)
+                currentUserEl.remove()
+
+                const receiver = document.getElementById('receiver')
+                if (receiver && receiver.textContent === data.left) {
+                    receiver.parentElement.querySelector(".online-marker").remove()
+                }
+
+                break
+            }
         }
     }
 

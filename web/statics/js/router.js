@@ -1,5 +1,5 @@
 import { homeTemplate, registerTemplate, loginTemplate, chatTemplate } from './templates.js'
-import { handleChatFront, sendMessage, SwapChat } from './chat.js'
+import { handleChatFront, sendMessage } from './chat.js'
 import { handleLoginFront } from './login.js'
 import { handleregisterFront } from './register.js'
 import { handleLogoutFront } from './logout.js'
@@ -41,7 +41,7 @@ const routes = {
     "/register": initRegister,
     "/login": initLogin,
     "/chat": initChat,
-    "/logout" : handleLogoutFront,
+    "/logout": handleLogoutFront,
 }
 
 const render404 = () => {

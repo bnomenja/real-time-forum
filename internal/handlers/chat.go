@@ -83,7 +83,7 @@ func Broadcast(db *sql.DB) {
 		case client := <-connect:
 			clients[client.NickName] = client.Ws
 
-			rows, err := db.Query(`SELECT nickname FROM user WHERE id != ?`, client.ID)
+			rows, err := db.Query(`SELECT nickname, id FROM user WHERE id != ?`, client.ID)
 			if err != nil {
 				continue
 			}
@@ -92,18 +92,41 @@ func Broadcast(db *sql.DB) {
 
 			for rows.Next() {
 				var u models.OtherClient
-				if err := rows.Scan(&u.NickName); err != nil {
+				var id string
+				if err := rows.Scan(&u.NickName, &id); err != nil {
 					continue
 				}
+
+				db.QueryRow(`
+				SELECT created_at
+				FROM private_message
+				WHERE (sender_id = ? AND receiver_id = ?)
+				OR (receiver_id = ? AND sender_id = ?)
+				ORDER BY created_at DESC
+				LIMIT 1
+				`, client.ID, id, client.ID, id).Scan(&u.LastChat)
+
 				_, u.Online = clients[u.NickName]
 				users = append(users, u)
 			}
 			rows.Close()
 
 			client.Ws.WriteJSON(map[string]any{
-				"event": "init",
-				"users": users,
+				"event":    "init",
+				"users":    users,
+				"nickname": client.NickName,
 			})
+
+			for name, conn := range clients {
+				if name == client.NickName {
+					continue
+				}
+
+				conn.WriteJSON(map[string]any{
+					"event":      "join",
+					"newcommers": client.NickName,
+				})
+			}
 
 		case msg := <-broadcast:
 
@@ -116,7 +139,7 @@ func Broadcast(db *sql.DB) {
 					WHERE (us.nickname = ? AND ur.nickname = ?)
 					   OR (us.nickname = ? AND ur.nickname = ?)
 					ORDER BY pm.created_at DESC
-					LIMIT 10
+					LIMIT 20
 				`, msg.Sender, msg.Receiver, msg.Receiver, msg.Sender)
 				if err != nil {
 					continue
@@ -163,6 +186,16 @@ func Broadcast(db *sql.DB) {
 
 		case client := <-disconnect:
 			delete(clients, client.NickName)
+			for name, conn := range clients {
+				if name == client.NickName {
+					continue
+				}
+
+				conn.WriteJSON(map[string]any{
+					"event" : "leave",
+					"left" : client.NickName,
+				})
+			}
 		}
 	}
 }
