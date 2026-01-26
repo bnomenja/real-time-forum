@@ -16,7 +16,7 @@ func ServeStatic(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if file.IsDir() {
-		// rendering a forbidden error
+		http.Error(w, "acess denied", http.StatusUnauthorized)
 		return
 	}
 

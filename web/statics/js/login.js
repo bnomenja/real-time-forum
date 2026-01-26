@@ -1,4 +1,3 @@
-import { currentUser } from './chat.js';
 import { HandleRouting } from './router.js';
 
 
@@ -32,12 +31,23 @@ export const handleLoginFront = async () => {
 
         const res = await resp.json()
 
-        currentUser.nickName = userCredentials.nickName
+        if (!resp.ok || res.code !== 200) {
+            const errorDiv = document.querySelector(".input-error")
+            if (errorDiv) {
+                errorDiv.textContent = res.error?.Error() || res.message || "Login failed"
+            }
+            return
+        }
 
-        window.history.pushState({}, "", "/chat")
+        // Redirect to posts after successful login
+        window.history.pushState({}, "", "/posts")
         HandleRouting()
 
     } catch (err) {
         console.error(err)
+        const errorDiv = document.querySelector(".input-error")
+        if (errorDiv) {
+            errorDiv.textContent = "An error occurred. Please try again."
+        }
     }
 }

@@ -9,8 +9,8 @@ import (
 )
 
 func Respond(w http.ResponseWriter, resp *models.Resp) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(resp.Code)
-	w.Header().Set("content-type", "application/json")
 
 	err := json.NewEncoder(w).Encode(&resp)
 	if err != nil {

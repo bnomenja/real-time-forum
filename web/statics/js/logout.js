@@ -3,13 +3,30 @@ import { HandleRouting } from "./router.js"
 
 export const handleLogoutFront = async () => {
     try {
-        await fetch("/logout", { method: "POST" })
-        currentUser.socket.close()
-        currentUser.socket = null
+        const resp = await fetch("/api/logout", {
+            method: "POST",
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
 
-        window.history.pushState({}, "", "/")
-        HandleRouting()
+        if (currentUser.socket) {
+            currentUser.socket.close()
+            currentUser.socket = null
+        }
+
+        if (resp.ok) {
+            const data = await resp.json()
+            if (data.loggedIn === false) {
+                window.history.pushState({}, "", "/")
+                HandleRouting()
+                return true
+            }
+        }
+        return false
     } catch (err) {
-        console.error(err)
+        console.error('Failed to logout:', err)
+        return false
     }
 }

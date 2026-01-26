@@ -1,21 +1,34 @@
 export const homeTemplate = () => {
     return `
-        <nav class="home-nav">
-            <a href="/" class="link">Home</a>
-            <a href="/register" class="link">Register</a>
-            <a href="/login" class="link">Login</a>
-            <a href="/chat" class="link">Chat</a>
-        </nav>
         <div class="home-content">
-            <h1>Bienvenue</h1>
-            <p>Connectez-vous ou créez un compte pour accéder au chat</p>
+            <h1>Welcome to the Forum</h1>
+            <p>Please login or register to access the forum</p>
+            <nav class="home-nav">
+                <a href="/register" class="link" style="padding: 0.75rem 1.5rem; background-color: var(--primary-color); color: white; text-decoration: none; border-radius: var(--radius-sm); font-weight: 600; transition: all 0.2s;">Register</a>
+                <a href="/login" class="link" style="padding: 0.75rem 1.5rem; background-color: var(--surface); color: var(--primary-color); text-decoration: none; border: 1px solid var(--primary-color); border-radius: var(--radius-sm); font-weight: 600; transition: all 0.2s;">Login</a>
+            </nav>
+        </div>
+    `
+}
+
+export const postsTemplate = () => {
+    return `
+        <div class="posts-container">
+            <div class="contentWrapper">
+                <aside class="sidebar">
+                    <div class="categorienews"></div>
+                </aside>
+                <main></main>
+            </div>
         </div>
     `
 }
 
 export const registerTemplate = () => {
     return `
-        <h1>Register</h1>
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h1 style="font-size: 2rem; font-weight: 700; color: var(--text-primary);">Register</h1>
+        </div>
         <div class="form-container register">
             <div class="input-error"></div>
 
@@ -73,7 +86,9 @@ export const registerTemplate = () => {
 }
 export const loginTemplate = () => {
     return `
-        <h1>Login</h1>
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h1 style="font-size: 2rem; font-weight: 700; color: var(--text-primary);">Login</h1>
+        </div>
         <form class="form-container login" novalidate>
             <div class="input-error" role="alert"></div>
 
