@@ -38,13 +38,37 @@ type Message struct {
 }
 
 type OtherClient struct {
-	LastChat time.Time `json:"lastChat"`
-	NickName string    `json:"nickname"`
-	Online   bool      `json:"online"`
+	LastChat        time.Time `json:"lastChat"`
+	Pending_Message int       `json:"pending"`
+	NickName        string    `json:"nickname"`
+	Online          bool      `json:"online"`
 }
 
 type Resp struct {
 	Message string `json:"message"`
 	Code    int    `json:"code"`
-	Error   error  `json:"error"`
+	Error   string `json:"error"`
+}
+
+type Comment struct {
+	CommentID string
+	Username  string
+	UserID    string
+	Content   string
+	Timed     string
+}
+
+type Post struct {
+	UserID        string
+	NickName      string
+	PostID        string
+	Username      string
+	Title         string
+	Content       string
+	CommentCount  int
+	CreatedAt     string
+	Comments      []Comment
+	LoggedIn      bool
+	Categories    []string
+	CommentStatus string
 }

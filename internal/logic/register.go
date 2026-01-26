@@ -2,7 +2,6 @@ package logic
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -23,7 +22,7 @@ func Register(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	err := helpers.GetData(r, user)
 	if err != nil {
-		helpers.Respond(w, &models.Resp{Code: 500, Error: err})
+		helpers.Respond(w, &models.Resp{Code: 500, Error: err.Error()})
 		return
 	}
 
@@ -35,7 +34,7 @@ func Register(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	err = helpers.CreateNewSession(w, db, user_id.String())
 	if err != nil {
-		helpers.Respond(w, &models.Resp{Code: 500, Error: err})
+		helpers.Respond(w, &models.Resp{Code: 500, Error: err.Error()})
 		return
 	}
 
@@ -43,11 +42,25 @@ func Register(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 }
 
 func insertUser(user *models.User, resp *models.Resp, db *sql.DB) uuid.UUID {
+	// Validate required fields
+	if user.FirstName == "" || user.LastName == "" || user.Nickname == "" || 
+	   user.Email == "" || user.Password == "" || user.Gender == "" {
+		resp.Code = 400
+		resp.Error = "all fields are required"
+		return uuid.Nil
+	}
+
+	if user.Age <= 0 {
+		resp.Code = 400
+		resp.Error = "age must be a valid positive number"
+		return uuid.Nil
+	}
+
 	hashedPw, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		fmt.Println("error hashing password: ", err)
 		resp.Code = 500
-		resp.Error = fmt.Errorf("something wrong happened. Please try later")
+		resp.Error = "something wrong happened. Please try later"
 		return uuid.Nil
 	}
 
@@ -55,7 +68,7 @@ func insertUser(user *models.User, resp *models.Resp, db *sql.DB) uuid.UUID {
 	if err != nil {
 		fmt.Println("error creating user id: ", err)
 		resp.Code = 500
-		resp.Error = fmt.Errorf("something wrong happened. Please try later")
+		resp.Error = "something wrong happened. Please try later"
 		return uuid.Nil
 	}
 
@@ -75,19 +88,19 @@ func insertUser(user *models.User, resp *models.Resp, db *sql.DB) uuid.UUID {
 
 		switch {
 		case strings.Contains(msg, "user.email"):
-			resp.Error = errors.New("an account with this email already exists")
+			resp.Error = "an account with this email already exists"
 			resp.Code = http.StatusConflict
 			return uuid.Nil
 
 		case strings.Contains(msg, "user.nickname"):
-			resp.Error = errors.New("this nickname is already taken")
+			resp.Error = "this nickname is already taken"
 			resp.Code = http.StatusConflict
 			return uuid.Nil
 
 		default:
 			fmt.Println("error inserting user's data:", err)
 			resp.Code = 500
-			resp.Error = fmt.Errorf("something wrong happened. Please try later")
+			resp.Error = "something wrong happened. Please try later"
 			return uuid.Nil
 		}
 	}

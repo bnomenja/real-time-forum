@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -85,6 +86,7 @@ func Broadcast(db *sql.DB) {
 
 			rows, err := db.Query(`SELECT nickname, id FROM user WHERE id != ?`, client.ID)
 			if err != nil {
+				fmt.Println(err)
 				continue
 			}
 
@@ -94,10 +96,11 @@ func Broadcast(db *sql.DB) {
 				var u models.OtherClient
 				var id string
 				if err := rows.Scan(&u.NickName, &id); err != nil {
+					fmt.Println(err)
 					continue
 				}
 
-				db.QueryRow(`
+				err := db.QueryRow(`
 				SELECT created_at
 				FROM private_message
 				WHERE (sender_id = ? AND receiver_id = ?)
@@ -105,10 +108,27 @@ func Broadcast(db *sql.DB) {
 				ORDER BY created_at DESC
 				LIMIT 1
 				`, client.ID, id, client.ID, id).Scan(&u.LastChat)
+				if err != nil && err != sql.ErrNoRows {
+					fmt.Println(err)
+					continue
+				}
+
+				err = db.QueryRow(`
+    			SELECT COUNT(*)
+    			FROM private_message
+    			WHERE sender_id = ?
+      			AND receiver_id = ?
+     			AND is_read = FALSE
+				`, id, client.ID).Scan(&u.Pending_Message)
+				if err != nil && err != sql.ErrNoRows {
+					fmt.Println(err)
+					continue
+				}
 
 				_, u.Online = clients[u.NickName]
 				users = append(users, u)
 			}
+
 			rows.Close()
 
 			client.Ws.WriteJSON(map[string]any{
@@ -131,17 +151,31 @@ func Broadcast(db *sql.DB) {
 		case msg := <-broadcast:
 
 			if msg.Type == "load_history" {
+				// set the olds messages of the two users as "read"
+				_, err := db.Exec(`
+				UPDATE private_message
+				SET is_read = TRUE 
+				WHERE sender_id = (SELECT id FROM user WHERE nickname = ?)
+				AND receiver_id = (SELECT id FROM user WHERE nickname = ?)
+				`, msg.Receiver, msg.Sender)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+
+				// take 10 mesages between two users
 				rows, err := db.Query(`
 					SELECT pm.created_at, pm.content, us.nickname, ur.nickname
 					FROM private_message pm
 					JOIN user us ON us.id = pm.sender_id
 					JOIN user ur ON ur.id = pm.receiver_id
 					WHERE (us.nickname = ? AND ur.nickname = ?)
-					   OR (us.nickname = ? AND ur.nickname = ?)
+					OR (us.nickname = ? AND ur.nickname = ?)
 					ORDER BY pm.created_at DESC
 					LIMIT 10 OFFSET ?
 				`, msg.Sender, msg.Receiver, msg.Receiver, msg.Sender, msg.Offset)
 				if err != nil {
+					fmt.Println(err)
 					continue
 				}
 
@@ -162,6 +196,7 @@ func Broadcast(db *sql.DB) {
 						"messages": messages,
 					})
 				}
+
 				continue
 			}
 

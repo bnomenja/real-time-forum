@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
 
 	"real-time-forum/internal/helpers"
@@ -19,7 +18,7 @@ func (a *App) HandleRegister(w http.ResponseWriter, r *http.Request) {
 	default:
 		helpers.Respond(w, &models.Resp{
 			Code:  405,
-			Error: errors.New("method not allowed"),
+			Error: "method not allowed",
 		})
 	}
 }

@@ -7,25 +7,96 @@ let currentOffset = 0
 let isLoading = false
 let hasmore = true
 
+// Track unread messages per user
+const unreadMessages = new Map()
+
+// Function to update notification badge (will be set by router)
+let updateNotificationCallback = null
+
+export const setNotificationCallback = (callback) => {
+    updateNotificationCallback = callback
+}
+
+// Function to update notification badge
+const updateNotificationBadge = () => {
+    let totalUnread = 0
+    unreadMessages.forEach((count) => {
+        totalUnread += count
+    })
+
+    if (updateNotificationCallback) {
+        updateNotificationCallback(totalUnread)
+    }
+}
+
+// Function to clear unread count for a user
+export const clearUnreadForUser = (nickname) => {
+    if (unreadMessages.has(nickname)) {
+        unreadMessages.delete(nickname)
+        updateNotificationBadge()
+    }
+}
+
+// Function to add unread message for a user
+const addUnreadForUser = (nickname) => {
+    const current = unreadMessages.get(nickname) || 0
+    unreadMessages.set(nickname, current + 1)
+    updateNotificationBadge()
+}
 
 export class Message {
-    constructor(content, type, receiver) {
+    constructor(content, type, receiver, time) {
         this.content = content;
         this.type = type;
-        this.receiver = receiver
+        this.receiver = receiver;
+        this.time = new Date(time);
     }
 
     create() {
         const message = document.createElement("div")
-        message.classList.add("message")
+        message.classList.add("fb-message")
+        message.classList.add(this.type === "me" ? "fb-message-sent" : "fb-message-received")
 
-        if (this.type === "me") message.classList.add("message-me")
-        else message.classList.add("message-other")
+        const now = new Date()
+        const msgDate = this.time
+        const isToday = now.toDateString() === msgDate.toDateString()
 
-        message.textContent = this.content
+        let timeStr
+        if (isToday) {
+            timeStr = msgDate.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            })
+        } else {
+            timeStr = msgDate.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            })
+        }
+
+        const bubble = document.createElement("div")
+        bubble.classList.add("fb-message-bubble")
+
+        const content = document.createElement("div")
+        content.classList.add("fb-message-content")
+        content.textContent = this.content
+
+        const timeEl = document.createElement("div")
+        timeEl.classList.add("fb-message-time")
+        timeEl.textContent = timeStr
+
+        bubble.appendChild(content)
+        bubble.appendChild(timeEl)
+        message.appendChild(bubble)
+
         return message
     }
 }
+
 const SwapChat = (user) => {
     const receiverEl = document.getElementById("receiver")
     const userEL = document.getElementById(user.nickname)
@@ -91,7 +162,6 @@ const switchChat = (user) => {
 
 }
 
-
 const updateOnlineMarker = (header, online) => {
     const avatar = header.querySelector(".avatar")
     if (!avatar) return
@@ -145,7 +215,7 @@ const createUserElement = (user, clickable = true, receiver = false) => {
 
 const addMessage = (msg, history = false) => {
     const type = msg.sender === currentUser.nickName ? "me" : "other"
-    const message = new Message(msg.content, type)
+    const message = new Message(msg.content, type, msg.receiver, msg.time)
     const messagesContainer = document.getElementById("messages")
 
     if (history) {
@@ -176,135 +246,223 @@ const observer = new IntersectionObserver((entries) => {
 
 })
 
+// Track if event listeners are already set up
+let textareaListenerSetup = false
+let textareaHandler = null
+
+// Setup event listeners (only once per page)
+const setupEventListeners = () => {
+    // Setup Enter key support for textarea (only if not already set up)
+    const chatTextarea = document.getElementById("chat-textarea")
+    if (chatTextarea && !textareaListenerSetup) {
+        textareaHandler = (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                sendMessage()
+            }
+        }
+
+        chatTextarea.addEventListener('keydown', textareaHandler)
+        textareaListenerSetup = true
+    }
+}
+
+// Reset event listeners when page changes
+export const resetEventListeners = () => {
+    textareaListenerSetup = false
+    const chatTextarea = document.getElementById("chat-textarea")
+
+    if (chatTextarea && textareaHandler) {
+        chatTextarea.removeEventListener('keydown', textareaHandler)
+        textareaHandler = null
+    }
+}
+
 export const handleChatFront = () => {
     if (currentUser.socket) return
 
     currentUser.socket = new WebSocket("ws://localhost:8080/ws/chat")
 
+    currentUser.socket.onopen = () => {
+        setupEventListeners()
+    }
+
+    currentUser.socket.onerror = (error) => {
+        console.error('WebSocket error:', error)
+    }
+
     currentUser.socket.onmessage = (e) => {
-        const data = JSON.parse(e.data)
+        try {
+            const data = JSON.parse(e.data)
 
-        switch (data.event) {
-            case "init": {
-                const list = document.querySelector(".user-list-wrapper")
-                list.innerHTML = ""
+            switch (data.event) {
+                case "init": {
+                    const list = document.querySelector(".user-list-wrapper")
+                    list.innerHTML = ""
 
-                data.users.sort((a, b) => {
-                    const aHasChat = a.lastChat !== "0001-01-01T00:00:00Z"
-                    const bHasChat = b.lastChat !== "0001-01-01T00:00:00Z"
+                    data.users.sort((a, b) => {
+                        const aHasChat = a.lastChat !== "0001-01-01T00:00:00Z"
+                        const bHasChat = b.lastChat !== "0001-01-01T00:00:00Z"
 
-                    if (aHasChat && !bHasChat) return -1
-                    if (!aHasChat && bHasChat) return 1
+                        if (aHasChat && !bHasChat) return -1
+                        if (!aHasChat && bHasChat) return 1
 
-                    if (aHasChat && bHasChat) {
-                        return new Date(b.lastChat) - new Date(a.lastChat)
+                        if (aHasChat && bHasChat) {
+                            return new Date(b.lastChat) - new Date(a.lastChat)
+                        }
+
+                        return String(a.nickname).localeCompare(String(b.nickname))
+                    })
+
+                    data.users.forEach(u => {
+                        const userEl = createUserElement(u)
+                        if (u.pending) {
+                            const notif = document.createElement("div")
+                            notif.classList.add("msg-notif")
+                            notif.textContent = u.pending
+                            userEl.append(notif)
+                        }
+
+                        const hasChat = u.lastChat !== "0001-01-01T00:00:00Z"
+                        userEl.dataset.hasChat = hasChat
+                        list.append(userEl)
+                    })
+
+                    currentUser.nickName = data.nickname
+                    break
+                }
+
+                case "chat": {
+                    const receiver = document.getElementById("receiver")
+
+                    if (!receiver || receiver.textContent !== data.message.sender) {
+                        const senderEl = document.getElementById(data.message.sender)
+                        const oldNotif = senderEl.querySelector(".msg-notif")
+                        const notifNumber = oldNotif ? Number(oldNotif.textContent) : 0
+
+                        senderEl.remove()
+
+                        const newUserEl = createUserElement({ nickname: data.message.sender, online: true }, true, false)
+                        newUserEl.dataset.hasChat = "true"
+                        const notif = document.createElement("div")
+                        notif.classList.add("msg-notif")
+                        notif.textContent = notifNumber + 1
+                        newUserEl.append(notif)
+
+                        const list = document.querySelector(".user-list-wrapper")
+                        list.prepend(newUserEl)
+                        list.scrollTo({ top: 0, behavior: "smooth" })
+                        break
+                    } else {
+                        addMessage(data.message)
+
+                        const senderEl = document.getElementById(data.message.sender)
+                        if (senderEl.dataset.hasChat === "false") {
+                            senderEl.dataset.hasChat = "true"
+                        }
                     }
 
-                    return String(a.nickname).localeCompare(String(b.nickname))
-                })
-
-                data.users.forEach(u => {
-                    list.append(createUserElement(u))
-                })
-                currentUser.nickName = data.nickname
-                break
-            }
-
-            case "chat": {
-                const receiver = document.getElementById("receiver")
-
-                if (!receiver || receiver.textContent !== data.message.sender) {
-                    const senderEl = document.getElementById(data.message.sender)
-                    const oldNotif = senderEl.querySelector(".msg-notif")
-                    const notifNumber = oldNotif ? Number(oldNotif.textContent) : 0
-                    senderEl.remove()
-
-                    const newUserEl = createUserElement({ nickname: data.message.sender, online: true }, true, false)
-                    const notif = document.createElement("div")
-                    notif.classList.add("msg-notif")
-                    notif.textContent = notifNumber + 1
-                    newUserEl.append(notif)
-
-                    const list = document.querySelector(".user-list-wrapper")
-                    list.prepend(newUserEl)
-                    list.scrollTo({ top: 0, behavior: "smooth" })
-                    break
-
-                } else {
-                    addMessage(data.message)
-                }
-
-                break
-            }
-
-            case "history": {
-                const cont = document.getElementById("messages")
-
-                const prevScrollHeight = cont.scrollHeight
-                const prevScrollTop = cont.scrollTop
-
-                data.messages.forEach(msg => addMessage(msg, true))
-
-                isLoading = false
-                if (data.messages.length === 0) hasmore = false
-                currentOffset += data.messages.length
-
-                const newScrollHeight = cont.scrollHeight
-                cont.scrollTop = prevScrollTop + (newScrollHeight - prevScrollHeight)
-
-                if (cont.scrollHeight <= cont.clientHeight) {
-                    isLoading = true
-
-                    currentUser.socket.send(JSON.stringify({
-                        type: "load_history",
-                        receiver: document.getElementById("receiver").textContent,
-                        offset: currentOffset
-                    }))
-                }
-                break
-            }
-
-
-            case "join": {
-                const m = document.createElement("div")
-                m.classList.add("online-marker")
-
-                const currentUserEl = document.getElementById(data.newcommers)
-                if (!currentUserEl) {
-                    const list = document.querySelector(".user-list-wrapper")
-                    list.append(createUserElement({ nickname: data.newcommers, online: true }))
                     break
                 }
 
-                const oldNotif = currentUserEl.querySelector(".msg-notif")
-                const newUser = createUserElement({ nickname: data.newcommers, online: true }, true, false)
-                if (oldNotif) newUser.append(oldNotif)
-                currentUserEl.parentElement.insertBefore(newUser, currentUserEl)
-                currentUserEl.remove()
+                case "history": {
+                    const cont = document.getElementById("messages")
 
-                const receiver = document.getElementById('receiver')
-                if (receiver && receiver.textContent === data.newcommers) {
-                    receiver.parentElement.firstChild.append(m)
+                    const prevScrollHeight = cont.scrollHeight
+                    const prevScrollTop = cont.scrollTop
+
+                    data.messages.forEach(msg => addMessage(msg, true))
+
+                    isLoading = false
+                    if (data.messages.length === 0) hasmore = false
+                    currentOffset += data.messages.length
+
+                    const newScrollHeight = cont.scrollHeight
+                    cont.scrollTop = prevScrollTop + (newScrollHeight - prevScrollHeight)
+
+                    if (cont.scrollHeight <= cont.clientHeight) {
+                        if (!hasmore) return
+                        isLoading = true
+
+                        currentUser.socket.send(JSON.stringify({
+                            type: "load_history",
+                            receiver: document.getElementById("receiver").textContent,
+                            offset: currentOffset
+                        }))
+                    }
+                    break
                 }
 
-                break
-            }
+                case "join": {
+                    const currentUserEl = document.getElementById(data.newcommers)
 
-            case "leave": {
-                const currentUserEl = document.getElementById(data.left)
-                const oldNotif = currentUserEl.querySelector(".msg-notif")
-                const newUser = createUserElement({ nickname: data.left, online: false }, true, false)
-                if (oldNotif) newUser.append(oldNotif)
-                currentUserEl.parentElement.insertBefore(newUser, currentUserEl)
-                currentUserEl.remove()
+                    if (!currentUserEl) {
+                        const list = document.querySelector(".user-list-wrapper")
+                        const newUser = createUserElement({ nickname: data.newcommers, online: true })
+                        newUser.dataset.hasChat = "false"
 
-                const receiver = document.getElementById('receiver')
-                if (receiver && receiver.textContent === data.left) {
-                    receiver.parentElement.querySelector(".online-marker").remove()
+                        let insertBefore = null
+                        const allUsers = Array.from(list.children)
+
+                        for (let i = allUsers.length - 1; i >= 0; i--) {
+                            const userEl = allUsers[i]
+
+                            if (userEl.dataset.hasChat === "true") continue
+
+                            const existingNickname = userEl.querySelector("span").textContent
+
+                            if (data.newcommers.localeCompare(existingNickname) < 0) {
+                                insertBefore = userEl
+                            } else {
+                                break
+                            }
+                        }
+
+                        if (insertBefore) {
+                            list.insertBefore(newUser, insertBefore)
+                        } else {
+                            list.append(newUser)
+                        }
+                        break
+                    }
+
+
+                    //saved user is loging 
+                    const oldNotif = currentUserEl.querySelector(".msg-notif")
+                    const newUser = createUserElement({ nickname: data.newcommers, online: true }, true, false)
+                    if (oldNotif) newUser.append(oldNotif)
+                    currentUserEl.parentElement.insertBefore(newUser, currentUserEl)
+                    currentUserEl.remove()
+
+                    const receiver = document.getElementById('receiver')
+                    if (receiver && receiver.textContent === data.newcommers) {
+                        // current user is reading the loging one's messages
+                        const m = document.createElement("div")
+                        m.classList.add("online-marker")
+                        receiver.parentElement.firstChild.append(m)
+                    }
+
+                    break
                 }
 
-                break
+                case "leave": {
+                    const currentUserEl = document.getElementById(data.left)
+                    const oldNotif = currentUserEl.querySelector(".msg-notif")
+                    const newUser = createUserElement({ nickname: data.left, online: false }, true, false)
+                    if (oldNotif) newUser.append(oldNotif)
+                    currentUserEl.parentElement.insertBefore(newUser, currentUserEl)
+                    currentUserEl.remove()
+
+                    const receiver = document.getElementById('receiver')
+                    if (receiver && receiver.textContent === data.left) {
+                        receiver.parentElement.querySelector(".online-marker").remove()
+                    }
+
+                    break
+                }
             }
+        } catch (error) {
+            console.error('Error parsing WebSocket message:', error, e.data)
         }
     }
 
@@ -318,13 +476,20 @@ export const sendMessage = () => {
     const input = document.getElementById("chat-textarea")
     if (!receiver || !input.value) return
 
-    addMessage({ sender: currentUser.nickName, content: input.value })
+    const isRead = receiver ===
+
+        addMessage({ sender: currentUser.nickName, receiver, content: input.value, time: Date.now() })
 
     currentUser.socket.send(JSON.stringify({
         type: "chat",
         receiver,
         content: input.value
     }))
+
+    const receiverEl = document.getElementById(receiver)
+    if (receiverEl && receiverEl.dataset.hasChat === "false") {
+        receiverEl.dataset.hasChat = "true"
+    }
 
     input.value = ""
 }
