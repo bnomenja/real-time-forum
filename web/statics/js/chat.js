@@ -476,9 +476,8 @@ export const sendMessage = () => {
     const input = document.getElementById("chat-textarea")
     if (!receiver || !input.value) return
 
-    const isRead = receiver ===
 
-        addMessage({ sender: currentUser.nickName, receiver, content: input.value, time: Date.now() })
+    addMessage({ sender: currentUser.nickName, receiver, content: input.value, time: Date.now() })
 
     currentUser.socket.send(JSON.stringify({
         type: "chat",

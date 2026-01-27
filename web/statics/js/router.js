@@ -47,20 +47,14 @@ async function checkAuth() {
 const createHeader = (auth, showCreatePost = true) => {
     return `
         <header class="forum-header">
-            <h1 class="forum-title" style="cursor: pointer;"><a href="/posts" class="link" style="text-decoration: none; color: inherit;">Forum</a></h1>
+            <h1 class="forum-title">
+                <a href="/posts" class="link">Forum</a>
+            </h1>
             <div class="forum-header-actions">
-                <a href="/chat" class="message-icon-link" id="message-icon-link">
-                    <div class="message-icon-container">
-                        <svg class="message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                        </svg>
-                        <span class="message-notification-badge" id="message-notification-badge" style="display: none;">0</span>
-                    </div>
-                </a>
                 ${showCreatePost ? '<button id="create-post-btn" class="create-post-btn">Create Post</button>' : ''}
                 <div class="user-profile-container">
                     <div class="user-profile-avatar" id="user-profile-avatar">
-                        <img src="statics/assets/user.png" alt="User">
+                        <img src="user.png" alt="User">
                     </div>
                     <div class="user-profile-menu" id="user-profile-menu">
                         <div class="user-profile-name">${auth.nickname}</div>
