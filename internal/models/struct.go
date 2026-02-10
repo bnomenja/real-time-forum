@@ -1,7 +1,7 @@
 package models
 
 import (
-	"time"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
@@ -26,22 +26,23 @@ type Client struct {
 	ID       string
 	NickName string
 	Ws       *websocket.Conn
+	Mu       *sync.Mutex
 }
 
 type Message struct {
-	Type     string    `json:"type"`
-	Sender   string    `json:"sender"`
-	Receiver string    `json:"receiver"`
-	Content  string    `json:"content"`
-	Time     time.Time `json:"time"`
-	Offset   int       `json:"offset"`
+	Type     string `json:"type"`
+	Sender   string `json:"sender"`
+	Receiver string `json:"receiver"`
+	Content  string `json:"content"`
+	Time     int64  `json:"time"`
+	Offset   int    `json:"offset"`
 }
 
 type OtherClient struct {
-	LastChat        time.Time `json:"lastChat"`
-	Pending_Message int       `json:"pending"`
-	NickName        string    `json:"nickname"`
-	Online          bool      `json:"online"`
+	LastChat        int64  `json:"lastChat"`
+	Pending_Message int    `json:"pending"`
+	NickName        string `json:"nickname"`
+	Online          bool   `json:"online"`
 }
 
 type Resp struct {
