@@ -346,7 +346,6 @@ function displaCategories() {
 export async function loadPosts(category = '') {
     try {
         currentCategory = category
-        console.log('Loading initial posts...')
         const response = await fetch(`/api/posts?offset=0&limit=${postsPerPage}`, {
             credentials: 'include'
         })
@@ -368,13 +367,15 @@ export async function loadPosts(category = '') {
         
         // Filter by category if specified
         let filteredPosts = posts
-        if (category) {
+        if (category && filteredPosts) {
             filteredPosts = posts.filter(post => 
                 post.categories && post.categories.includes(category)
             )
         }
+        if (filteredPosts){
+            displayPosts(filteredPosts)
+        }
         
-        displayPosts(filteredPosts)
     } catch (error) {
         console.error('Error loading posts:', error)
         const main = document.querySelector('main')
