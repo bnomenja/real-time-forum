@@ -20,7 +20,6 @@ export const handleLoginFront = async () => {
     else userCredentials.nickName = identifier
     userCredentials.password = password
 
-    console.log(userCredentials)
 
     try {
         const resp = await fetch("/login", {
@@ -47,7 +46,7 @@ export const handleLoginFront = async () => {
         console.error(err)
         const errorDiv = document.querySelector(".input-error")
         if (errorDiv) {
-            errorDiv.textContent = "An error occurred. Please try again."
+            errorDiv.textContent = "failed to login try with a correct information."
         }
     }
 }

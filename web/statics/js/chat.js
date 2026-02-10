@@ -7,6 +7,9 @@ let currentOffset = 0
 let isLoading = false
 let hasmore = true
 
+let timer
+let sent = false
+
 
 export class Message {
     constructor(content, type, sender, receiver, time) {
@@ -75,6 +78,45 @@ export const throttle = (cb,) => {
     }
 }
 
+const createTypingElement = (ele) => {
+    if (document.getElementById("typing-animation")) return
+
+    const typing = document.createElement("div")
+    typing.id = "typing-animation"
+    typing.innerHTML = `
+        <div class="tails"></div>
+        <div class="balls"></div>
+        <div class="balls"></div>
+        <div class="balls"></div>
+    `
+    if (ele.querySelector(".msg-notif")) {
+        ele.insertBefore(typing, ele.lastChild)
+    } else {
+        ele.append(typing)
+    }
+
+    animateTyping(typing)
+}
+
+const animateTyping = (typing) => {
+    const balls = typing.getElementsByClassName("balls")
+
+    let opacity = 0.25
+    let increase = true
+
+    typing._interval = setInterval(() => {
+        Array.from(balls).forEach((ball, i) => {
+            setTimeout(() => {
+                ball.style.opacity = opacity
+            }, i * 80)
+        })
+
+        if (opacity <= 0.25) increase = true
+        if (opacity >= 1) increase = false
+        opacity += increase ? 0.25 : -0.25
+    }, 250)
+}
+
 const SwapChat = (user) => {
     const receiverEl = document.getElementById("receiver")
     const userEL = document.getElementById(user.nickname)
@@ -116,9 +158,45 @@ const openChat = (user) => {
     const cont = document.getElementById("messages")
     cont.innerHTML = `<div id="sentinel"></div>`
     observer.observe(document.getElementById("sentinel"))
+
+    document.getElementById("chat-input").addEventListener("input", () => {
+        if (!sent) {
+            currentUser.socket.send(JSON.stringify({
+                sender: currentUser.nickName,
+                receiver: document.getElementById('receiver').textContent,
+                type: "typing",
+            }))
+
+            sent = true
+        }
+
+        clearTimeout(timer)
+
+        timer = setTimeout(() => {
+            currentUser.socket.send(JSON.stringify({
+                sender: currentUser.nickName,
+                receiver: document.getElementById('receiver').textContent,
+                type: "stop-typing",
+            }))
+
+            sent = false
+        }, 750)
+    })
 }
 
 const closeChat = () => {
+    if (timer) {
+        currentUser.socket.send(JSON.stringify({
+            sender: currentUser.nickName,
+            receiver: document.getElementById('receiver').textContent,
+            type: "stop-typing",
+        }))
+        clearTimeout(timer)
+
+        timer = undefined
+        sent = false
+    }
+
     const chatCont = document.querySelector(".chat-container")
 
     chatCont.firstElementChild?.remove()
@@ -141,6 +219,30 @@ const switchChat = (user) => {
 
     receiverEl.textContent = user.nickname
     updateOnlineMarker(chatCont.firstElementChild, user.online)
+
+    document.getElementById("chat-input").addEventListener("input", () => {
+        if (!sent) {
+            currentUser.socket.send(JSON.stringify({
+                sender: currentUser.nickName,
+                receiver: document.getElementById('receiver').textContent,
+                type: "typing",
+            }))
+
+            sent = true
+        }
+
+        clearTimeout(timer)
+
+        timer = setTimeout(() => {
+            currentUser.socket.send(JSON.stringify({
+                sender: currentUser.nickName,
+                receiver: document.getElementById('receiver').textContent,
+                type: "stop-typing",
+            }))
+
+            sent = false
+        }, 750)
+    })
 
 }
 
@@ -347,6 +449,13 @@ export const handleChatFront = () => {
                     } else {
                         addMessage(data.message)
 
+                        // mark messages as read so refresh doesn't show wrong notification count
+                        currentUser.socket.send(JSON.stringify({
+                            type: "mark_read",
+                            sender: currentUser.nickName,
+                            receiver: data.message.sender
+                        }))
+
                         document.getElementById(data.message.sender).remove()
                         const newEl = createUserNode({ nickname: data.message.sender, online: true }, { hasChat: true })
                         list.prepend(newEl)
@@ -455,6 +564,26 @@ export const handleChatFront = () => {
 
                     break
                 }
+
+                case "typing": {
+                    const receiver = document.getElementById("receiver")
+                    if (receiver && receiver.textContent == data.typer) {
+                        createTypingElement(document.getElementById("messages"))
+                    } else {
+                        createTypingElement(document.getElementById(data.typer))
+                    }
+
+                    break
+                }
+
+                case "stop-typing": {
+                    clearInterval(timer)
+                    timer = undefined
+                    sent = false
+                    const typing = document.getElementById("typing-animation")
+                    if (typing) typing.remove()
+                    break
+                }
             }
         } catch (error) {
             console.error('Error parsing WebSocket message:', error, e.data)
@@ -471,6 +600,11 @@ const sendMessage = () => {
     const input = document.getElementById("chat-textarea")
     if (!receiver || !input.value) return
 
+    clearInterval(timer)
+    timer = undefined
+    sent = false
+    const typing = document.getElementById("typing-animation")
+    if (typing) typing.remove()
 
     addMessage({ sender: currentUser.nickName, receiver, content: input.value, time: Date.now() })
 
@@ -489,3 +623,4 @@ const sendMessage = () => {
 }
 
 export const throttledSendMessage = throttle(sendMessage)
+
