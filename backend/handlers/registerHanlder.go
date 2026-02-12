@@ -26,7 +26,7 @@ func RegisterHandler(db *sql.DB) func(w http.ResponseWriter, r *http.Request) {
 			Register(w, r, db)
 		default:
 			if r.Method != http.MethodPost {
-				Respond(w, &models.Resp{
+				utils.Respond(w, &models.Resp{
 					Code:  405,
 					Error: "method not allowed",
 				})
@@ -83,23 +83,23 @@ func Register(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	err := GetData(r, user)
 	if err != nil {
-		Respond(w, &models.Resp{Code: 500, Error: err.Error()})
+		utils.Respond(w, &models.Resp{Code: 500, Error: err.Error()})
 		return
 	}
 
 	user_id := insertUser(user, resp, db)
 	if user_id == uuid.Nil {
-		Respond(w, resp)
+		utils.Respond(w, resp)
 		return
 	}
 
 	err = CreateNewSession(w, db, user_id.String())
 	if err != nil {
-		Respond(w, &models.Resp{Code: 500, Error: err.Error()})
+		utils.Respond(w, &models.Resp{Code: 500, Error: err.Error()})
 		return
 	}
 
-	Respond(w, resp)
+	utils.Respond(w, resp)
 }
 
 func isAlphaOnly(s string) bool {
@@ -214,16 +214,4 @@ func insertUser(user *models.User, resp *models.Resp, db *sql.DB) uuid.UUID {
 	}
 
 	return user_id
-}
-
-func Respond(w http.ResponseWriter, resp *models.Resp) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(resp.Code)
-
-	err := json.NewEncoder(w).Encode(&resp)
-	if err != nil {
-		fmt.Println("error encoding the body: ", err)
-		// render error 500
-		return
-	}
 }
