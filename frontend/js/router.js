@@ -1,16 +1,25 @@
+import { handleRoot } from "./app.js"
+import { handleLoginFront, initLogin } from "./components/auth/login.js"
+import { handleLogoutFront } from "./components/auth/logout.js"
 import { initRegister, handleregisterFront } from "./components/auth/register.js"
-
+import { initPost } from "./components/posts/postPage.js"
 
 const routes = {
+    "/": handleRoot,
     "/register": initRegister,
-    "/": async () => {
-        const user = await checkAuth()
+    "/login": initLogin,
+    "/posts": initPost,
+}
 
-        if (user.loggedIn) window.history.pushState({}, "", "/posts")
-        else window.history.pushState({}, "", "/register")
-    
-        HandleRouting()
-    }
+export const renderError = (code, msg, mainCont, navBar) => {
+    navBar.innerHTML = ''
+    mainCont.innerHTML = `
+        <div class="error-container">
+            <h1>Error ${code}</h1>
+            <p>${msg}</p>
+            <a href="/" class="link">Back to home</a>
+        </div>
+    `
 }
 
 export const HandleRouting = async () => {
@@ -22,14 +31,7 @@ export const HandleRouting = async () => {
     const initFunc = routes[path]
 
     if (!initFunc) {
-        navBar.innerHTML = ''
-        mainCont.innerHTML = `
-        <div class="error-container">
-            <h1>Error 404</h1>
-            <p>Page not found</p>
-            <a href="/" class="link">Back to home</a>
-        </div>
-    `
+        renderError(404, "Page not found", mainCont, navBar)
         return
     }
 
@@ -41,14 +43,7 @@ export const HandleRouting = async () => {
 
     } catch (error) {
         console.error('Error in route handler:', error)
-        navBar.innerHTML = ''
-        mainCont.innerHTML = `
-        <div class="error-container">
-            <h1>Error 500</h1>
-            <p>Something wrong happened</p>
-            <a href="/" class="link">Back to home</a>
-        </div>
-    `
+        renderError(500, "Something wrong happened", mainCont, navBar)
     }
 }
 
@@ -56,9 +51,37 @@ window.onpopstate = HandleRouting
 HandleRouting()
 
 document.addEventListener("click", (e) => {
+    if (e.target.matches('a.link') || e.target.closest('a.link')) {
+        e.preventDefault()
+        const link = e.target.closest('a.link') || e.target
+        window.history.pushState({}, "", link.href)
+        HandleRouting()
+    }
+
     if (e.target.id === 'register-submit-btn') {
         e.preventDefault()
         handleregisterFront()
+        return
+    }
+
+    if (e.target.id === 'login-submit-btn') {
+        e.preventDefault()
+        handleLoginFront()
+        return
+    }
+
+    if (e.target.id === 'send-btn') {
+        e.preventDefault()
+        throttledSendMessage()
+        handleChatFront()
+        return
+    }
+
+    if (e.target.id === 'logout-btn' || e.target.id === 'logout-btn-nav') {
+        e.preventDefault()
+        handleLogoutFront()
+        window.history.pushState({}, "", "/")
+        HandleRouting()
         return
     }
 })

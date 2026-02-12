@@ -28,7 +28,7 @@ const registerTemplate = () => {
                         <label for="age">Age:</label>
                         <input type="number" id="age" name="age" required>
                     </div>
-
+, showCreatePost = true
                     <div id="gender-container">
                         <label>Gender:</label>
                         <div class="gender-input">
@@ -114,8 +114,6 @@ export const handleregisterFront = async () => {
             return
         }
         
-        // Redirect to posts after successful registration
-        // change just the url-path
         window.history.pushState({}, "", "/posts")
         HandleRouting()
 

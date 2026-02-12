@@ -547,6 +547,7 @@ main {
     margin-bottom: 4px;
     font-size: 0.85rem;
     color: var(--error);
+    text-align: center;
 }
 
 .form-container button,
