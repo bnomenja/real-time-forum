@@ -67,16 +67,16 @@ const registerTemplate = () => {
     `
 }
 
-export async function initRegister()  {
-      const user =  await checkAuth()
-    
-        if (user.loggedIn) {
-            window.history.pushState({}, "", "/posts")
-            HandleRouting()
-        } else {
-    navBar.innerHTML = ''
-    mainCont.innerHTML = registerTemplate()
-        }
+export async function initRegister() {
+    const user = await checkAuth()
+
+    if (user.loggedIn) {
+        window.history.pushState({}, "", "/posts")
+        HandleRouting()
+    } else {
+        navBar.innerHTML = ''
+        mainCont.innerHTML = registerTemplate()
+    }
 }
 
 export const handleregisterFront = async () => {
@@ -110,15 +110,34 @@ export const handleregisterFront = async () => {
         body: JSON.stringify(userData)
     })
 
-    if (result.success) {
-        window.history.pushState({}, "", "/posts")
-        HandleRouting()
-        
-    } else if ( [400, 409].includes(result.code) ){
-        errorDiv.textContent = result.error
-        
-    } else {
-        renderError(result.error, result.error)
+
+    switch (result.code) {
+        case 200: {
+            window.history.pushState({}, "", "/posts")
+            HandleRouting()
+            break
+        }
+
+        case 303: {
+            window.history.pushState({}, "", "/posts")
+            HandleRouting()
+            break
+        }
+
+        case 400: {
+            errorDiv.textContent = result.error
+            break
+        }
+
+        case 409: {
+            errorDiv.textContent = result.error
+            break
+        }
+
+        default: {
+            renderError(result.code, result.error)
+            break
+        }
     }
 
 }

@@ -20,6 +20,14 @@ func LoginHanlder(db *sql.DB) func(w http.ResponseWriter, r *http.Request) {
 		case http.MethodGet:
 			utils.RenderMainpage(w)
 		case http.MethodPost:
+			_, _, err := GetUserFromSession(r, db)
+			if err == nil {
+				utils.Respond(w, &models.Resp{
+					Code: http.StatusSeeOther,
+				})
+				return
+			}
+
 			Login(w, r, db)
 		default:
 			utils.Respond(w, &models.Resp{
@@ -61,8 +69,9 @@ func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	err = services.DeleteSession(w, r, db)
+	_, err2 := db.Exec("DELETE FROM session WHERE user_id = ?", user_id)
 
-	if err != nil{
+	if err != nil || err2 != nil {
 		fmt.Println("error while removing the session: ", err)
 		utils.Respond(w, &models.Resp{Code: 500, Error: "Something wrong happened. Please try again"})
 		return
