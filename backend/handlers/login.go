@@ -20,14 +20,6 @@ func LoginHanlder(db *sql.DB) func(w http.ResponseWriter, r *http.Request) {
 		case http.MethodGet:
 			utils.RenderMainpage(w)
 		case http.MethodPost:
-			_, _, err := GetUserFromSession(r, db)
-			if err == nil {
-				utils.Respond(w, &models.Resp{
-					Code: http.StatusSeeOther,
-				})
-				return
-			}
-
 			Login(w, r, db)
 		default:
 			utils.Respond(w, &models.Resp{

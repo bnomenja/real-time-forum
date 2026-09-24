@@ -81,6 +81,7 @@ func Disconnect(clients map[string][]*models.Client, client *models.Client) {
 		return
 	}
 
+	// Remove specific connection
 	for i, c := range cs {
 		if c == client {
 			clients[nickname] = append(cs[:i], cs[i+1:]...)
@@ -88,6 +89,7 @@ func Disconnect(clients map[string][]*models.Client, client *models.Client) {
 		}
 	}
 
+	// If no connections left for this user, broadcast "leave"
 	if len(clients[nickname]) == 0 {
 		delete(clients, nickname)
 		for name, cs := range clients {

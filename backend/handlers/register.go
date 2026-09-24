@@ -20,14 +20,6 @@ func RegisterHandler(db *sql.DB) func(w http.ResponseWriter, r *http.Request) {
 			utils.RenderMainpage(w)
 
 		case http.MethodPost:
-			_, _, err := GetUserFromSession(r, db)
-			if err == nil {
-				utils.Respond(w, &models.Resp{
-					Code: http.StatusSeeOther,
-				})
-				return
-			}
-			
 			Register(w, r, db)
 
 		default:
